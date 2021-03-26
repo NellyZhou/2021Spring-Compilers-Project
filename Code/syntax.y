@@ -482,7 +482,7 @@ CompSt : error RC {
 	;
 
 Exp : error RP {
-		$$ = NULL
+		$$ = NULL;
 	}
 	;
 

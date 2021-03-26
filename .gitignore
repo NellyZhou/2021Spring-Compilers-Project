@@ -1,1 +1,8 @@
 .DS_Store
+*.yy.c
+*.o
+*.output
+*.tab.c
+*.tab.h
+*.tab.o
+parser
