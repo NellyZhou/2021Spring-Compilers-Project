@@ -1,4 +1,4 @@
 run :
-	@cd Code; make build; make test
+	@cd Code; make; make test # build
 clean :
 	@cd Code; make clean

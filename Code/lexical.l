@@ -25,6 +25,10 @@ int_hex		0[xX][0-9A-Fa-f]+
 error_oct	0[0-9a-fA-F]+
 error_hex	0[xX][0-9A-Za-z]+
 
+int_form	0|([1-9]{digital}*)
+commonfloat	{int_form}\.{digital}+
+scifloat	(({digital}+\.{digital}+)|({digital}+\.)|(\.{digital}+))([Ee])([+-]?{digital}+)
+float_form	{commonfloat}|{scifloat}
 
 id_form		{letter_}({letter_}|{digital})*	
 
@@ -51,25 +55,25 @@ id_form		{letter_}({letter_}|{digital})*
 
 {error_hex}	{
 	lexical_error = 1;
-	printf("Error type A at Line %d: Illegal hexadecimal number \'%s\'\n",
+	printf("Error type A at Line %d: Illegal hexadecimal number \'%s\'.\n",
 		yylineno, yytext);
 	return INT;
 }
 
 {error_oct}	{	
 	lexical_error = 1;
-	printf("Error type A at Line %d: Illegal octal number \'%s\'\n",
+	printf("Error type A at Line %d: Illegal octal number \'%s\'.\n",
 		yylineno, yytext);
 	return INT;
 }
 
-0|([1-9]{digital}*)	{
+{int_form}	{
 //	printf("INT");
 	yylval.type_node = create_TreeNode("INT", __TOKEN_TYPE__, yylineno, INT_VALUE, yytext);
 	return INT;
 }
 
-0|([1-9]{digital}*)\.{digital}+	{
+{float_form}	{
 //	printf("FLOAT");
 	yylval.type_node = create_TreeNode("FLOAT", __TOKEN_TYPE__, yylineno, FLOAT_VALUE, yytext);
 	return FLOAT;
@@ -228,7 +232,7 @@ while	{
 
 .	{
 	lexical_error = 1;
-	printf("Error type A at Line %d: Mysterious characters \'%s\'\n",
+	printf("Error type A at Line %d: Mysterious characters \'%s\'.\n",
 		yylineno, yytext);
 	return ID;
 }
