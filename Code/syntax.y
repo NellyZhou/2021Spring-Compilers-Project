@@ -39,7 +39,7 @@
 %left RELOP
 %left PLUS MINUS
 %left STAR DIV
-%nonassoc TAKE_MINUS_VALUE
+%right TAKE_MINUS_VALUE
 %left LP RP LB RB DOT
 
 %nonassoc LOWER_THAN_ELSE
@@ -131,7 +131,7 @@ StructSpecifier : STRUCT OptTag LC DefList RC %prec having_rc{
 
 	}
 	| STRUCT Tag {
-		$$ = create_TreeNode("Specifier", __SYMBOL_TYPE__, @$.first_line, -1, "");
+		$$ = create_TreeNode("StructSpecifier", __SYMBOL_TYPE__, @$.first_line, -1, "");
 		connect($$, $1);
 		connect($$, $2);
 		
