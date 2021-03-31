@@ -3,4 +3,7 @@ int inc (int a,int b){
 	int a[]][in];
 }
 
+int main(){
+
+
 int a
