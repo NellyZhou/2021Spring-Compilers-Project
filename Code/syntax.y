@@ -448,25 +448,25 @@ Args : Exp COMMA Args{
 
 /* specific errors */
 ExtDef : Specifier ExtDecList %prec losing_semi{
-		yyerror("Missing \";\"");
+		yyerror("Missing \";\".");
 	}
 	;
 
 ExtDecList : VarDec ExtDecList{	//lose comma
-		yyerror("Missing \",\"");
+		yyerror("Missing \",\".");
 	}
 	;
 
 StructSpecifier : STRUCT OptTag LC DefList %prec losing_rc{
-		yyerror("Missing \"}\"");
+		yyerror("Missing \"}\".");
 	}
 	;
 
 VarDec : VarDec LB INT %prec losing_rb{
-		yyerror("Missing \"]\"");
+		yyerror("Missing \"]\".");
 	}
 	| VarDec LB error RB{
-		yyerror("Illegal index");
+		yyerror("Illegal index.");
 	}
 	;
 

@@ -233,7 +233,7 @@ while	{
 	lexical_error = 1;
 	printf("Error type A at Line %d: Mysterious characters \'%s\'.\n",
 		yylineno, yytext);
-	return ID;
+	
 }
 
 %%
