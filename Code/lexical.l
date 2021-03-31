@@ -27,8 +27,7 @@ error_hex	0[xX][0-9A-Za-z]+
 
 int_form	0|([1-9]{digital}*)
 commonfloat	{int_form}\.{digital}+
-scifloat	(({digital}+\.{digital}+)|({digital}+\.)|(\.{digital}+))([Ee])([+-]?{digital}+)
-float_form	{commonfloat}|{scifloat}
+float_form	{commonfloat}
 
 id_form		{letter_}({letter_}|{digital})*	
 
