@@ -6,7 +6,7 @@
 	extern void yyerror(char*);
 	extern int syntax_error;
 	extern int yylineno;
-	int pre_lineno = -1;
+	extern int pre_lineno;
 %}
 /* declare types */
 %union {
@@ -131,7 +131,7 @@ StructSpecifier : STRUCT OptTag LC DefList RC %prec having_rc{
 
 	}
 	| STRUCT Tag {
-		$$ = create_TreeNode("Specifier", __SYMBOL_TYPE__, @$.first_line, -1, "");
+		$$ = create_TreeNode("StructSpecifier", __SYMBOL_TYPE__, @$.first_line, -1, "");
 		connect($$, $1);
 		connect($$, $2);
 		
@@ -489,9 +489,10 @@ Exp : error RP {
 %%
 
 void yyerror(char* msg)	{
-	if (pre_lineno == yylineno)
+	int tmp_lineno = yylineno;
+	if (pre_lineno == tmp_lineno)
 		return;
-	pre_lineno = yylineno;
+	pre_lineno = tmp_lineno;
 	syntax_error = 1;
-	printf("Error type B at Line %d: %s\n", yylineno, msg);
+	printf("Error type B at Line %d: %s\n", tmp_lineno, msg);
 }

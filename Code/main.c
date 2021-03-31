@@ -6,13 +6,11 @@
 TreeNode *root = NULL;
 int lexical_error = 0;
 int syntax_error = 0;
-
 extern FILE* yyin;
 #ifdef __YY_DEBUG__
 extern int yydebug;
 #endif
 extern int yylex (void);
-
 extern int yyparse(void);
 extern void yyrestart(FILE *);
 
