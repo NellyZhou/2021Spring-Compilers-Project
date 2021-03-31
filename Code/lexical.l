@@ -3,7 +3,7 @@
 	#include "syntax.tab.h"
 	
 	extern int lexical_error;
-
+	int pre_lineno = -1;
 	/* YY_USER_ACTION */
 	int yycolumn = 1;
 	#define YY_USER_ACTION \
@@ -230,9 +230,13 @@ while	{
 }
 
 .	{
+	int tmp_lineno = yylineno;
+	if (pre_lineno == tmp_lineno)
+		return ID;
+	pre_lineno = tmp_lineno;
 	lexical_error = 1;
 	printf("Error type A at Line %d: Mysterious characters \'%s\'.\n",
-		yylineno, yytext);
+		tmp_lineno, yytext);
 	return ID;
 }
 
