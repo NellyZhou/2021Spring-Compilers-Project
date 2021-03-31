@@ -3,7 +3,7 @@
 	#include "SyntaxTree.h"
 	#include "lex.yy.c"
 	extern TreeNode* root;
-	extern void yyerror(char*);
+	extern void yyerror(char* msg);
 	extern int syntax_error;
 	extern int yylineno;
 	int pre_lineno = -1;
@@ -471,7 +471,28 @@ VarDec : VarDec LB INT %prec losing_rb{
 	;
 
 /* error recovery */
+ExtDef : error SEMI{
+		$$ = NULL;
+	};
+
 Stmt : error SEMI {
+		$$ = NULL;
+	}
+	;
+	| RETURN error SEMI {
+		$$ = NULL;
+	}
+	;
+	| RETURN Exp error {
+		$$ = NULL;
+	}
+	;
+	| Exp error SEMI {
+		$$ = NULL;
+	}
+	;
+
+DEf : Specifier error SEMI {
 		$$ = NULL;
 	}
 	;
@@ -482,6 +503,10 @@ CompSt : error RC {
 	;
 
 Exp : error RP {
+		$$ = NULL;
+	}
+	;
+    | Exp LB error RB {
 		$$ = NULL;
 	}
 	;
