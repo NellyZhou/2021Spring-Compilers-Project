@@ -1,6 +1,6 @@
-int a b;
+int a[5,3];
 int inc (int a,int b){
-	int a[]][in];
+	int a[in];
 }
 
 int a

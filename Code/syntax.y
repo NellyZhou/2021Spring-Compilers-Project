@@ -32,6 +32,9 @@
 %type <type_node> DefList Def DecList Dec
 %type <type_node> Exp Args 
 
+/* types for error checking*/
+%type <type_node> error_Exp
+
 /* set preference */
 %right ASSIGNOP
 %left OR
@@ -452,6 +455,17 @@ ExtDef : Specifier ExtDecList %prec losing_semi{
 	}
 	;
 
+Stmt : Exp error{
+		yyerror("Missing \";\".");
+	}
+	| RETURN Exp error{
+		yyerror("Missing \";\".");
+	}	
+	| IF LP Exp RP Exp ELSE{
+		yyerror("Missing \";\".");
+	}
+	;
+
 ExtDecList : VarDec ExtDecList{	//lose comma
 		yyerror("Missing \",\".");
 	}
@@ -465,29 +479,27 @@ StructSpecifier : STRUCT OptTag LC DefList %prec losing_rc{
 VarDec : VarDec LB INT %prec losing_rb{
 		yyerror("Missing \"]\".");
 	}
-	| VarDec LB error RB{
+	| VarDec LB ID{
 		yyerror("Illegal index.");
 	}
 	;
 
+error_Exp : Exp LB Exp %prec losing_rb{
+		yyerror("Missing \"]\".");	
+	}
+	;
+
+
 /* error recovery */
 ExtDef : error SEMI{
 		$$ = NULL;
-	};
+	}
+	;
 
 Stmt : error SEMI {
 		$$ = NULL;
 	}
-	;
-	| RETURN error SEMI {
-		$$ = NULL;
-	}
-	;
-	| RETURN Exp error {
-		$$ = NULL;
-	}
-	;
-	| Exp error SEMI {
+	| error_Exp SEMI{
 		$$ = NULL;
 	}
 	;
@@ -505,8 +517,7 @@ CompSt : error RC {
 Exp : error RP {
 		$$ = NULL;
 	}
-	;
-    | Exp LB error RB {
+	| Exp LB error RB {
 		$$ = NULL;
 	}
 	;
