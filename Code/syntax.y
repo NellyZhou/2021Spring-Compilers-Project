@@ -492,7 +492,7 @@ Stmt : error SEMI {
 	}
 	;
 
-DEf : Specifier error SEMI {
+Def : Specifier error SEMI {
 		$$ = NULL;
 	}
 	;
