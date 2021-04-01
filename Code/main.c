@@ -6,6 +6,7 @@
 TreeNode *root = NULL;
 int lexical_error = 0;
 int syntax_error = 0;
+int pre_lineno = -1;
 
 extern FILE* yyin;
 #ifdef __YY_DEBUG__

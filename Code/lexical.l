@@ -3,7 +3,7 @@
 	#include "syntax.tab.h"
 	
 	extern int lexical_error;
-
+	extern int pre_lineno;
 	/* YY_USER_ACTION */
 	int yycolumn = 1;
 	#define YY_USER_ACTION \
@@ -53,6 +53,9 @@ id_form		{letter_}({letter_}|{digital})*
 }
 
 {error_hex}	{
+	if (pre_lineno == yylineno)
+		return INT;
+	pre_lineno = yylineno;
 	lexical_error = 1;
 	printf("Error type A at Line %d: Illegal hexadecimal number \'%s\'.\n",
 		yylineno, yytext);
@@ -60,6 +63,9 @@ id_form		{letter_}({letter_}|{digital})*
 }
 
 {error_oct}	{	
+	if (pre_lineno == yylineno)
+		return INT;
+	pre_lineno = yylineno;
 	lexical_error = 1;
 	printf("Error type A at Line %d: Illegal octal number \'%s\'.\n",
 		yylineno, yytext);
@@ -230,10 +236,13 @@ while	{
 }
 
 .	{
+	if (yylineno == pre_lineno)
+		return ID;
+	pre_lineno = yylineno;
 	lexical_error = 1;
 	printf("Error type A at Line %d: Mysterious characters \'%s\'.\n",
 		yylineno, yytext);
-	
+	return ID;
 }
 
 %%

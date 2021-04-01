@@ -7,7 +7,7 @@
 	extern int syntax_error;
 	extern int yydebug;
 	extern int yylineno;
-	int pre_lineno = -1;
+	extern int pre_lineno;
 %}
 /* declare types */
 %union {
