@@ -451,41 +451,41 @@ Args : Exp COMMA Args{
 
 /* specific errors */
 ExtDef : Specifier ExtDecList %prec losing_semi{
-		yyerror("Missing \";\".");
+		yyerror("Missing \";\"");
 	}
 	;
 
 Stmt : Exp error{
-		yyerror("Missing \";\".");
+		yyerror("Missing \";\"");
 	}
 	| RETURN Exp error{
-		yyerror("Missing \";\".");
+		yyerror("Missing \";\"");
 	}	
 	| IF LP Exp RP Exp ELSE{
-		yyerror("Missing \";\".");
+		yyerror("Missing \";\"");
 	}
 	;
 
 ExtDecList : VarDec ExtDecList{	//lose comma
-		yyerror("Missing \",\".");
+		yyerror("Missing \",\"");
 	}
 	;
 
 StructSpecifier : STRUCT OptTag LC DefList %prec losing_rc{
-		yyerror("Missing \"}\".");
+		yyerror("Missing \"}\"");
 	}
 	;
 
 VarDec : VarDec LB INT %prec losing_rb{
-		yyerror("Missing \"]\".");
+		yyerror("Missing \"]\"");
 	}
 	| VarDec LB ID{
-		yyerror("Illegal index.");
+		yyerror("Illegal index");
 	}
 	;
 
 error_Exp : Exp LB Exp %prec losing_rb{
-		yyerror("Missing \"]\".");	
+		yyerror("Missing \"]\"");	
 	}
 	;
 
@@ -529,5 +529,5 @@ void yyerror(char* msg)	{
 		return;
 	pre_lineno = yylineno;
 	syntax_error = 1;
-	printf("Error type B at Line %d: %s\n", yylineno, msg);
+	printf("Error type B at Line %d: %s.\n", yylineno, msg);
 }
