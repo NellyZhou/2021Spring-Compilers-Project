@@ -1,7 +1,7 @@
 #include "SyntaxTree.h"
 
 
-TreeNode * create_TreeNode(char name[], int node_type, int line,  int value_type, char value[]){
+TreeNode * create_TreeNode(char name[], int node_type, int line,int value_type, char value[]){
 	TreeNode *ptr = malloc(sizeof(TreeNode));
 	strcpy(ptr->name, name);
 	ptr->node_type = node_type;
@@ -10,12 +10,12 @@ TreeNode * create_TreeNode(char name[], int node_type, int line,  int value_type
 	} else if (node_type == __TOKEN_TYPE__){
 		ptr->value_type = value_type;
 		switch (value_type){
-			case INT_VALUE: ptr->int_val = atoi(value); break;
+			case INT_VALUE: ptr->int_val = (unsigned int)strtol(value, NULL, 10); break;
 			case FLOAT_VALUE: ptr->float_val = atof(value); break;
 			case TYPE_VALUE: strcpy(ptr->type_val, value); break;
 			case ID_VALUE: strcpy(ptr->id_val, value); break;
-			case OCT_VALUE: ptr->int_val = (int)strtol(value, NULL, 8); break;
-			case HEX_VALUE: ptr->int_val = (int)strtol(value, NULL, 16); break;
+			case OCT_VALUE: ptr->int_val = (unsigned int)strtol(value, NULL, 8); break;
+			case HEX_VALUE: ptr->int_val = (unsigned int)strtol(value, NULL, 16); break;
 			defualt: break;
 		}
 	}
@@ -47,7 +47,7 @@ void show(TreeNode *root, int depth){
 		switch (root->value_type){
 			case OCT_VALUE:
 			case HEX_VALUE:
-			case INT_VALUE: printf(": %d", root->int_val); break;
+			case INT_VALUE: printf(": %u", root->int_val); break;
 			case FLOAT_VALUE: printf(": %f", root->float_val); break;
 			case TYPE_VALUE: printf(": %s", root->type_val); break;
 			case ID_VALUE: printf(": %s", root->id_val); break;

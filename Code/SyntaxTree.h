@@ -21,7 +21,7 @@ typedef struct TreeNode{
 	int line;
 	int value_type;
 	union {
-		int int_val;
+		unsigned int int_val;
 		float float_val;
 		char type_val[32];
 		char id_val[32];

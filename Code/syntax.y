@@ -100,11 +100,11 @@ ExtDef : Specifier ExtDecList SEMI{
 	;
 
 ExtDecList : VarDec{
-		$$ = create_TreeNode("ExtDefList", __SYMBOL_TYPE__, @$.first_line, -1, "");
+		$$ = create_TreeNode("ExtDecList", __SYMBOL_TYPE__, @$.first_line, -1, "");
 		connect($$, $1);
 	}
 	| VarDec COMMA ExtDecList {
-		$$ = create_TreeNode("ExtDefList", __SYMBOL_TYPE__, @$.first_line, -1, "");
+		$$ = create_TreeNode("ExtDecList", __SYMBOL_TYPE__, @$.first_line, -1, "");
 		connect($$, $1);
 		connect($$, $2);
 		connect($$, $3);
@@ -456,36 +456,36 @@ ExtDef : Specifier ExtDecList %prec losing_semi{
 	;
 
 Stmt : Exp error{
-		yyerror("Missing \";\".");
+		yyerror("Missing \";\"");
 	}
 	| RETURN Exp error{
-		yyerror("Missing \";\".");
+		yyerror("Missing \";\"");
 	}	
 	| IF LP Exp RP Exp ELSE{
-		yyerror("Missing \";\".");
+		yyerror("Missing \";\"");
 	}
 	;
 
 ExtDecList : VarDec ExtDecList{	//lose comma
-		yyerror("Missing \",\".");
+		yyerror("Missing \",\"");
 	}
 	;
 
 StructSpecifier : STRUCT OptTag LC DefList %prec losing_rc{
-		yyerror("Missing \"}\".");
+		yyerror("Missing \"}\"");
 	}
 	;
 
 VarDec : VarDec LB INT %prec losing_rb{
-		yyerror("Missing \"]\".");
+		yyerror("Missing \"]\"");
 	}
 	| VarDec LB ID{
-		yyerror("Illegal index.");
+		yyerror("Illegal index");
 	}
 	;
 
 error_Exp : Exp LB Exp %prec losing_rb{
-		yyerror("Missing \"]\".");	
+		yyerror("Missing \"]\"");	
 	}
 	;
 
@@ -529,5 +529,5 @@ void yyerror(char* msg)	{
 		return;
 	pre_lineno = yylineno;
 	syntax_error = 1;
-	printf("Error type B at Line %d: %s\n", yylineno, msg);
+	printf("Error type B at Line %d: %s.\n", yylineno, msg);
 }
