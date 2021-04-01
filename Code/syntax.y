@@ -100,11 +100,11 @@ ExtDef : Specifier ExtDecList SEMI{
 	;
 
 ExtDecList : VarDec{
-		$$ = create_TreeNode("ExtDefList", __SYMBOL_TYPE__, @$.first_line, -1, "");
+		$$ = create_TreeNode("ExtDecList", __SYMBOL_TYPE__, @$.first_line, -1, "");
 		connect($$, $1);
 	}
 	| VarDec COMMA ExtDecList {
-		$$ = create_TreeNode("ExtDefList", __SYMBOL_TYPE__, @$.first_line, -1, "");
+		$$ = create_TreeNode("ExtDecList", __SYMBOL_TYPE__, @$.first_line, -1, "");
 		connect($$, $1);
 		connect($$, $2);
 		connect($$, $3);
