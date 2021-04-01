@@ -5,6 +5,7 @@
 	extern TreeNode* root;
 	extern void yyerror(char* msg);
 	extern int syntax_error;
+	extern int yydebug;
 	extern int yylineno;
 	int pre_lineno = -1;
 %}
@@ -60,6 +61,8 @@
 
 %nonassoc losing_rp
 %nonassoc having_rp
+
+%nonassoc WrongId
 
 %%
 /* High-level Definition */
@@ -483,6 +486,10 @@ VarDec : VarDec LB INT %prec losing_rb{
 		yyerror("Illegal index");
 	}
 	;
+
+Def : Specifier INT {
+		yyerror("Illegal id");
+	};
 
 error_Exp : Exp LB Exp %prec losing_rb{
 		yyerror("Missing \"]\"");	
