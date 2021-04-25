@@ -35,6 +35,8 @@ typedef struct TreeNode{
 extern TreeNode * create_TreeNode(char name[], int node_type, int line,  int value_type, char value[]);
 extern void connect(TreeNode *parent, TreeNode *child);
 extern void show(TreeNode *root, int depth);
+extern TreeNode* childNode(TreeNode *root, int index);
+extern int countChild(TreeNode *root);
 
 
 #endif

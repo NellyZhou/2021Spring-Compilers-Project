@@ -63,3 +63,25 @@ void show(TreeNode *root, int depth){
 	}
 	return;
 }
+
+TreeNode* childNode(TreeNode *root, int index){
+    if (root == NULL)
+        return NULL;
+    TreeNode* p = root->first_child;
+    for (int i = 0; i < index; i++){
+        p = p->next;
+    }
+    return p;
+}
+
+int countChild(TreeNode *root){
+    if (root == NULL)
+        return 0;
+    int ans = 0;
+    TreeNode* p = root->first_child;
+    while (p != NULL){
+        ans++;
+        p = p->next;
+    }
+    return ans;
+}
