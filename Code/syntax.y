@@ -79,7 +79,7 @@ ExtDefList : ExtDef ExtDefList{
 		connect($$, $2);
 	}
 	| /* empty*/{
-		$$ = NULL;
+		$$ = create_TreeNode("ExtDefList", __SYMBOL_TYPE__, @$.first_line, -1, "");
 	}
 	;
 
@@ -150,7 +150,7 @@ OptTag : ID {
 
 	}
 	| /* empty */ {
-		$$ = NULL;
+		$$ = create_TreeNode("OptTag", __SYMBOL_TYPE__, @$.first_line, -1, "");
 	}
 	;
 
@@ -233,7 +233,7 @@ StmtList : Stmt StmtList{
 
 	}
 	| /* empty */{
-		$$ = NULL;
+		$$ = create_TreeNode("StmtList", __SYMBOL_TYPE__, @$.first_line, -1, "");
 	}
 	;
 
@@ -294,7 +294,7 @@ DefList : Def DefList {
 
 	}
 	| /* empty */ {
-		$$ = NULL;
+		$$ = create_TreeNode("DefList", __SYMBOL_TYPE__, @$.first_line, -1, "");
 	}
 	;
 

@@ -1,6 +1,9 @@
 #include "semantics.h"
 #include <stdio.h>
 
+//#define L2_DEBUG true
+#define L2_DEBUG false
+
 HashNode* hash_list[HASHLIST_VOLUMN];
 
 void HashListInitial(){
@@ -23,7 +26,7 @@ unsigned int Hash_pjw(char* name){
 }
 bool HashListAdd(HashNodeType node_type, void* u, int current_line){
     HashNode* current_node = (HashNode*)malloc(sizeof(HashNode));
-    //节点为变量时
+    //node is variable
     if (node_type == VARIABLE){
         current_node->kind = VARIABLE;
         current_node->u.variable = (Variable) u;
@@ -52,7 +55,7 @@ bool HashListAdd(HashNodeType node_type, void* u, int current_line){
         }
     }
     
-    //节点为函数时
+    //node is function
     if (node_type == FUNCTION){
         current_node->kind = FUNCTION;
         current_node->u.function = (Function) u;
@@ -87,7 +90,7 @@ bool HashListAdd(HashNodeType node_type, void* u, int current_line){
         current_node->next = NULL;
         
         char* current_node_name = current_node->u.variable->name;
-        if (current_node_name == NULL)                                          //未命名的structure
+        if (current_node_name == NULL)                                          //unnamed structure
             return true;
         
         unsigned int hash_key = Hash_pjw(current_node_name);
@@ -147,12 +150,16 @@ void* HashListFind(HashNodeType node_type, char* name){
 //*                     High-level Definitions                 *
 //**************************************************************
 
-void SemanticsProgamAnalysis(TreeNode* root){
+void SemanticsProgramAnalysis(TreeNode* root){
     if (root == NULL)
         return;
+
+    if (L2_DEBUG)
+	printf("reached program\n");
+
     //-> ExtDefList
-    if (strcmp(root->first_child->name, "ExtDefList") == 0){
-        ExtDefList(root->first_child);
+    if (strcmp(childNode(root, 0)->name, "ExtDefList") == 0){
+        ExtDefList(childNode(root, 0));
     }
     return;
 }
@@ -160,9 +167,15 @@ void SemanticsProgamAnalysis(TreeNode* root){
 void ExtDefList(TreeNode* root){
     if (root == NULL)
         return;
+    int count_node = countChild(root);
     
+    if (L2_DEBUG){
+	printf("reached ExtDefList\n");
+	//printf("reached ExtDefList with child nodes: \n %s %s \n", childNode(root, 0)->name, childNode(root, 1)->name);
+        //printf("%d %d\n",strcmp(childNode(root, 0)->name, "ExtDef"), strcmp(childNode(root, 1)->name, "ExtDefList"));
+    }
     //-> ExtDef ExtDefList
-    if (countChild(root) == 2 && strcmp(childNode(root, 0)->name, "ExtDef") == 0 && strcmp(childNode(root, 1)->name, "ExtDefList")){
+    if (count_node == 2 && strcmp(childNode(root, 0)->name, "ExtDef") == 0 && strcmp(childNode(root, 1)->name, "ExtDefList") == 0){
         ExtDef(childNode(root, 0));
         ExtDefList(childNode(root, 1));
     }
@@ -171,6 +184,9 @@ void ExtDefList(TreeNode* root){
 }
 
 void ExtDef(TreeNode* root){
+    if (L2_DEBUG)
+	printf("reached ExtDef\n");
+    
     if (root == NULL)
         return;
     int count_node = countChild(root);
@@ -227,6 +243,10 @@ Type Specifier(TreeNode* root){
     if (root == NULL)
         return NULL;
     int count_node = countChild(root);
+    
+    if (L2_DEBUG)
+	printf("reached Specifier\n");
+    
     //-> TYPE
     if (count_node == 1 && strcmp(childNode(root, 0)->name, "TYPE") == 0){
         TreeNode* current_child = childNode(root, 0);
@@ -335,6 +355,9 @@ Variable VarDec(TreeNode* root, Type t, bool in_struct_field){
         return NULL;
     int count_node = countChild(root);
     
+    if (L2_DEBUG)
+	printf("reached vardec\n");
+
     //-> ID
     if (count_node == 1 && strcmp(childNode(root, 0)->name, "ID") == 0){
         TreeNode* node_id = childNode(root, 0);
@@ -365,7 +388,7 @@ Variable VarDec(TreeNode* root, Type t, bool in_struct_field){
     return NULL;
 }
 
-Function FunDec(TreeNode* root, Type t){     //表示return_type
+Function FunDec(TreeNode* root, Type t){     //t for return_type
     if (root == NULL)
         return NULL;
     int count_node = countChild(root);

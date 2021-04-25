@@ -37,9 +37,9 @@ struct Type_{
 };
 
 struct FieldList_{
-    char* name;         //域的名字
-    Type type;          //域的类型
-    FieldList tail;     //下一个域
+    char* name;         //field name
+    Type type;          //field type
+    FieldList tail;     //next field
 };
 
 struct Variable_{
@@ -67,27 +67,27 @@ extern HashNode* hash_list[HASHLIST_VOLUMN];
 
 //============== hash operations ===================
 extern void HashListInitial();
-extern unsigned int Hash_pjw(char* name);           //Hash函数
-extern bool HashListAdd(HashNodeType node_type, void* u, int current_line);       //插入成功返回true 已经定义过则返回false
+extern unsigned int Hash_pjw(char* name);           //Hash Function
+extern bool HashListAdd(HashNodeType node_type, void* u, int current_line);       //insert successfully return true; false
 extern void* HashListFind(HashNodeType node_type, char* name);
 
 
 //************** High-level Definitions *****************
-extern void SemanticsProgamAnalysis(TreeNode* root);
+extern void SemanticsProgramAnalysis(TreeNode* root);
 extern void ExtDefList(TreeNode* root);
 extern void ExtDef(TreeNode* root);
-extern void ExtDecList(TreeNode* root, Type t);     //表示变量的type
+extern void ExtDecList(TreeNode* root, Type t);   
 
 
 //************** Specifiers ******************************
-extern Type Specifier(TreeNode* root);              //需要判断Type是否在HashList中
+extern Type Specifier(TreeNode* root);             
 extern Type structSpecifier(TreeNode* root);
 extern char* OptTag(TreeNode* root);
 extern char* Tag(TreeNode* root);
 
 //************** Declarators ******************************
 extern Variable VarDec(TreeNode* root, Type t, bool in_struct_field);
-extern Function FunDec(TreeNode* root, Type t);     //表示return_type
+extern Function FunDec(TreeNode* root, Type t);    
 extern FieldList VarList(TreeNode* root, int* count);
 extern Variable ParamDec(TreeNode* root);
 

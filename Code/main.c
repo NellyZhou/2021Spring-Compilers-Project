@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "SyntaxTree.h"
+#include "semantics.h"
 
 //#define __YY_DEBUG__
 
@@ -32,7 +33,8 @@ int main(int argc, char** argv){
 	yyparse();
 
 	if (!lexical_error && !syntax_error){
-		show(root, 0);
+	//	show(root, 0);
+		SemanticsProgramAnalysis(root);
 	}
 
 	return 0;

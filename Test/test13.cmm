@@ -1,4 +1,5 @@
-struct Position 2{
+struct Position 
+{
     float x, y;
 };
 
