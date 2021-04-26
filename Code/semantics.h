@@ -1,7 +1,10 @@
 #ifndef __SEMANTICS_H__
 #define __SEMANTICS_H__
 #include "SyntaxTree.h"
-#define HASHLIST_VOLUMN 16384
+#define HASHLIST_VOLUMN 0x3fff
+
+//#define L2_DEBUG true
+#define L2_DEBUG false
 
 typedef int bool;
 #define true 1
@@ -38,6 +41,7 @@ struct Type_{
 
 struct FieldList_{
     char* name;         //field name
+    int line;
     Type type;          //field type
     FieldList tail;     //next field
 };
@@ -63,7 +67,7 @@ typedef struct HashNode{
     struct HashNode* next;
 }HashNode;
 
-extern HashNode* hash_list[HASHLIST_VOLUMN];
+extern HashNode* hash_list[HASHLIST_VOLUMN + 1];
 
 //============== hash operations ===================
 extern void HashListInitial();
@@ -117,7 +121,7 @@ extern bool isLeftValueExp(TreeNode* root);
 extern bool isLogicExp(Type a);
 extern bool isArithExp(Type a);
 //error 15
-extern bool SharingSameName(FieldList f);
+extern bool SharingSameName(FieldList f, int current_line);
 //2.3
 extern bool isSameField(FieldList a, FieldList b);
 

@@ -5,9 +5,8 @@ TreeNode * create_TreeNode(char name[], int node_type, int line,int value_type, 
 	TreeNode *ptr = malloc(sizeof(TreeNode));
 	strcpy(ptr->name, name);
 	ptr->node_type = node_type;
-	if (node_type == __SYMBOL_TYPE__){
-		ptr->line = line;
-	} else if (node_type == __TOKEN_TYPE__){
+	ptr->line = line;
+	if (node_type == __TOKEN_TYPE__){
 		ptr->value_type = value_type;
 		switch (value_type){
 			case INT_VALUE: ptr->int_val = (unsigned int)strtol(value, NULL, 10); break;

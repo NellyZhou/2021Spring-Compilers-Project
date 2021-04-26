@@ -1,10 +1,8 @@
 #include "semantics.h"
 #include <stdio.h>
 
-//#define L2_DEBUG true
-#define L2_DEBUG false
 
-HashNode* hash_list[HASHLIST_VOLUMN];
+HashNode* hash_list[HASHLIST_VOLUMN + 1];
 
 void HashListInitial(){
     for (int i = 0; i < HASHLIST_VOLUMN; i++){
@@ -17,14 +15,16 @@ unsigned int Hash_pjw(char* name){
     unsigned int val = 0, i;
     for (; *name; ++name){
         val = (val << 2) + *name;
-        i = val & HASHLIST_VOLUMN;
-        if (i)
-            val = (val ^ (i >> 12) & HASHLIST_VOLUMN);
+        if (i = val & ~0x3fff)
+            val = (val ^ (i >> 12)) & 0x3fff;
     }
     return val;
     
 }
 bool HashListAdd(HashNodeType node_type, void* u, int current_line){
+    if (L2_DEBUG){
+   	printf("add hashlist\n");
+    }
     HashNode* current_node = (HashNode*)malloc(sizeof(HashNode));
     //node is variable
     if (node_type == VARIABLE){
@@ -36,6 +36,9 @@ bool HashListAdd(HashNodeType node_type, void* u, int current_line){
         unsigned int hash_key = Hash_pjw(current_node_name);
         
         if (hash_list[hash_key] == NULL){
+	    if (L2_DEBUG){
+   		printf("add variable \"%s\"\n", current_node_name);
+	    }
             hash_list[hash_key] = current_node;
         } else {
             HashNode* p = hash_list[hash_key];
@@ -50,6 +53,9 @@ bool HashListAdd(HashNodeType node_type, void* u, int current_line){
                 }
                 p = p->next;
             }
+	    if (L2_DEBUG){
+   		printf("add variable \"%s\"\n", current_node_name);
+	    }
             current_node->next = hash_list[hash_key];
             hash_list[hash_key] = current_node;
         }
@@ -65,6 +71,9 @@ bool HashListAdd(HashNodeType node_type, void* u, int current_line){
         unsigned int hash_key = Hash_pjw(current_node_name);
         
         if (hash_list[hash_key] == NULL){
+	    if (L2_DEBUG){
+   		printf("add function \"%s\"\n", current_node_name);
+	    }
             hash_list[hash_key] = current_node;
         } else {
             HashNode* p = hash_list[hash_key];
@@ -79,22 +88,30 @@ bool HashListAdd(HashNodeType node_type, void* u, int current_line){
                 }
                 p = p->next;
             }
+	    if (L2_DEBUG){
+   		printf("add function \"%s\"\n", current_node_name);
+	    }
             current_node->next = hash_list[hash_key];
             hash_list[hash_key] = current_node;
         }
     }
     
-    if (node_type == STRUCTURE_TYPE){
-        current_node->kind = STRUCTURE_TYPE;
+    if (node_type == STRUCTURE_TYPE){ 
+	if (L2_DEBUG){
+   	    printf("strucure:\n");
+	}
+	current_node->kind = STRUCTURE_TYPE;
         current_node->u.variable = (Variable) u;
         current_node->next = NULL;
         
         char* current_node_name = current_node->u.variable->name;
         if (current_node_name == NULL)                                          //unnamed structure
             return true;
-        
-        unsigned int hash_key = Hash_pjw(current_node_name);
-        if (hash_list[hash_key] == NULL){
+	unsigned int hash_key = Hash_pjw(current_node_name);
+	if (hash_list[hash_key] == NULL){
+	    if (L2_DEBUG){
+   		printf("add structure \"%s\"\n", current_node_name);
+	    }
             hash_list[hash_key] = current_node;
         } else {
             HashNode* p = hash_list[hash_key];
@@ -109,6 +126,9 @@ bool HashListAdd(HashNodeType node_type, void* u, int current_line){
                 }
                 p = p->next;
             }
+	    if (L2_DEBUG){
+   		printf("add structure \"%s\"\n", current_node_name);
+	    }
             current_node->next = hash_list[hash_key];
             hash_list[hash_key] = current_node;
         }
@@ -261,8 +281,8 @@ Type Specifier(TreeNode* root){
         return tmp_type;
     }
         
-    //-> structSpecifier
-    if (count_node == 1 && strcmp(childNode(root, 0)->name, "structSpecifier") == 0){
+    //-> StructSpecifier
+    if (count_node == 1 && strcmp(childNode(root, 0)->name, "StructSpecifier") == 0){
         return structSpecifier(childNode(root, 0));
     }
     return NULL;
@@ -270,6 +290,8 @@ Type Specifier(TreeNode* root){
 
 
 Type structSpecifier(TreeNode* root){
+    if (L2_DEBUG)
+	printf("reached structSpecifier\n");
     if (root == NULL)
         return NULL;
     int count_node = countChild(root);
@@ -292,8 +314,8 @@ Type structSpecifier(TreeNode* root){
         
         FieldList f = t->u.structure;
         if (f == NULL)  return NULL;
-        if (SharingSameName(f)) return NULL;                                    //error 15
-        if (!HashListAdd(VARIABLE, v, childNode(root, 1)->line)) return NULL;   //error 3
+        if (SharingSameName(f, childNode(root, 1)->line)) return NULL;                //error 15
+        if (!HashListAdd(STRUCTURE_TYPE, v, childNode(root, 1)->line)) return NULL;   //error 3
        
         Type tmp_type = (Type)malloc(sizeof(Type_));
         tmp_type->kind = t->kind;
@@ -322,6 +344,8 @@ Type structSpecifier(TreeNode* root){
 
 
 char* OptTag(TreeNode* root){
+    if (L2_DEBUG)
+	printf("reached OptTag\n");
     if (root == NULL)
         return NULL;
     int count_node = countChild(root);
@@ -389,6 +413,9 @@ Variable VarDec(TreeNode* root, Type t, bool in_struct_field){
 }
 
 Function FunDec(TreeNode* root, Type t){     //t for return_type
+    if (L2_DEBUG)
+	printf("reached FunDec\n");
+    
     if (root == NULL)
         return NULL;
     int count_node = countChild(root);
@@ -422,13 +449,15 @@ Function FunDec(TreeNode* root, Type t){     //t for return_type
 }
 
 FieldList VarList(TreeNode* root, int* count){
+    if (L2_DEBUG)
+	printf("reached VarList\n");
     if (root == NULL)
         return NULL;
     int count_node = countChild(root);
     
     //-> ParamDec COMMA VarList
     if (count_node == 3 && strcmp(childNode(root, 0)->name, "ParamDec") == 0 && strcmp(childNode(root, 1)->name, "COMMA") == 0 && strcmp(childNode(root, 2)->name, "VarList") == 0){
-        Variable v = ParamDec(childNode(root, 1));
+        Variable v = ParamDec(childNode(root, 0));
         
         FieldList f = (FieldList)malloc(sizeof(FieldList_));
         f->name = (char*) malloc(sizeof(char) * (strlen(v->name) + 1));
@@ -442,7 +471,7 @@ FieldList VarList(TreeNode* root, int* count){
     
     //-> ParamDec
     if (count_node == 1 && strcmp(childNode(root, 0)->name, "ParamDec") == 0){
-        Variable v = ParamDec(childNode(root, 1));
+        Variable v = ParamDec(childNode(root, 0));
         
         FieldList f = (FieldList)malloc(sizeof(FieldList_));
         f->name = (char*) malloc(sizeof(char) * (strlen(v->name) + 1));
@@ -459,12 +488,15 @@ FieldList VarList(TreeNode* root, int* count){
 Variable ParamDec(TreeNode* root){
     if (root == NULL)
         return NULL;
+    if (L2_DEBUG){
+	printf("reached ParamDec\n");
+//	printf("\t %d child\n", count_node);
+    }
     int count_node = countChild(root);
-        
     //-> Specifier VarDec
     if (count_node == 2 && strcmp(childNode(root, 0)->name, "Specifier") == 0 && strcmp(childNode(root, 1)->name, "VarDec") == 0){
         Type t = Specifier(childNode(root, 0));
-        return VarDec(childNode(root, 1), t, false);
+	return VarDec(childNode(root, 1), t, false);
     }
     return NULL;
 }
@@ -487,6 +519,8 @@ void CompSt(TreeNode* root, Function f){
 }
 
 void StmtList(TreeNode* root, Function f){
+    if (L2_DEBUG)
+	printf("reached StmtList\n");
     if (root == NULL)
         return;
     int count_node = countChild(root);
@@ -502,6 +536,8 @@ void StmtList(TreeNode* root, Function f){
 }
 
 void Stmt(TreeNode* root, Function f){
+    if (L2_DEBUG)
+	printf("reached Stmt\n");
     if (root == NULL)
         return;
     int count_node = countChild(root);
@@ -564,6 +600,8 @@ void Stmt(TreeNode* root, Function f){
 //*                     Local Definitions                      *
 //**************************************************************
 FieldList DefList(TreeNode* root, bool in_struct_field){
+    if (L2_DEBUG)
+	printf("reached DefList\n");
     if (root == NULL)
         return NULL;
     int count_node = countChild(root);
@@ -588,6 +626,8 @@ FieldList DefList(TreeNode* root, bool in_struct_field){
 }
 
 FieldList Def(TreeNode* root, bool in_struct_field){
+    if (L2_DEBUG)
+	printf("reached Def\n");
     if (root == NULL)
         return NULL;
     int count_node = countChild(root);
@@ -649,6 +689,7 @@ FieldList Dec(TreeNode* root, Type t, bool in_struct_field){
             tmp_field->name = (char*)malloc(sizeof(char) * (strlen(current_variable->name) + 1));
             strcpy(tmp_field->name, current_variable->name);
             tmp_field->type = current_variable->type;
+	    tmp_field->line = childNode(root, 0)->line;
             tmp_field->tail = NULL;
             return tmp_field;
         } else {
@@ -678,6 +719,8 @@ FieldList Dec(TreeNode* root, Type t, bool in_struct_field){
 //*                     Expressions                            *
 //**************************************************************
 Type Exp(TreeNode* root){
+    if (L2_DEBUG)
+	printf("reached Exp\n");
     if (root == NULL)
         return NULL;
     int count_node = countChild(root);
@@ -738,7 +781,11 @@ Type Exp(TreeNode* root){
         Type exp_type_a = Exp(childNode(root, 0));
         Type exp_type_b = Exp(childNode(root, 2));
         if (exp_type_a == NULL || exp_type_b == NULL){
-            return NULL;
+            //return NULL;
+            Type tmp_type = (Type)malloc(sizeof(Type_));
+            tmp_type->kind = BASIC;
+            tmp_type->u.basic = BASIC_INT;
+            return tmp_type;
         }
         if (isArithExp(exp_type_a) && isSameType(exp_type_a, exp_type_b)){
             Type tmp_type = (Type)malloc(sizeof(Type_));
@@ -748,7 +795,11 @@ Type Exp(TreeNode* root){
         } else {
             TreeNode* node_tmp = childNode(root, 1);
             printf("Error type 7 at Line %d: Type mismatched for operands.\n", node_tmp->line);
-            return NULL;
+            //return NULL;
+            Type tmp_type = (Type)malloc(sizeof(Type_));
+            tmp_type->kind = BASIC;
+            tmp_type->u.basic = BASIC_INT;
+            return tmp_type;
         }
     }
     
@@ -897,7 +948,7 @@ Type Exp(TreeNode* root){
             printf("Error type 10 at Line %d: Expression before \"[]\" is not an array.\n", node_lb->line);
             return NULL;
         }
-        if (exp_type_b->kind != BASIC){
+        if (!isLogicExp(exp_type_b)){
             printf("Error type 12 at Line %d: Expression between \"[]\" is not an integer.\n", node_lb->line);
             return NULL;
         }
@@ -1003,6 +1054,8 @@ void Args(TreeNode* root, FieldList f, char* function_name){
 //**************************************************************
 //error 5/7/8
 bool isSameType(Type a, Type b){
+    if (L2_DEBUG)
+	printf("checked isSameType\n");
     if (a == NULL || b == NULL)
         return false;
     if (a->kind != b->kind)
@@ -1014,7 +1067,7 @@ bool isSameType(Type a, Type b){
         return isSameType(a->u.array.elem, b->u.array.elem);
     }
     if (a->kind == STRUCTURE){
-        return isSameField(a->u.structure, a->u.structure);
+        return isSameField(a->u.structure, b->u.structure);
     }
     return false;
 }
@@ -1050,17 +1103,35 @@ bool isArithExp(Type a){
 }
 
 //error 15
-bool SharingSameName(FieldList f){
+bool SharingSameName(FieldList f, int current_line){
+    if (L2_DEBUG)
+	    printf("reached SharingSameNAme\n");
     if (f == NULL) return false;
+    if (L2_DEBUG){
+	FieldList p = f;
+	while (p != NULL){
+		printf("\t%s\n", p->name);
+		p = p->tail;
+	}
+   	for (FieldList field_i = f; field_i->tail != NULL; field_i = field_i->tail)
+        	for (FieldList field_j = field_i->tail; field_j != NULL; field_j = field_j->tail)
+		{    
+   			printf("\t compare: %s %s %d\n", field_i->name, field_j->name, strcmp(field_i->name, field_j->name));
+		}	
+    }
     for (FieldList field_i = f; field_i->tail != NULL; field_i = field_i->tail)
         for (FieldList field_j = field_i->tail; field_j != NULL; field_j = field_j->tail)
-            if (strcmp(field_i->name, field_j->name) == 0)
-                return true;
+            if (strcmp(field_i->name, field_j->name) == 0){
+                printf("Error type 15 at Line %d: Redefined field \"%s\".\n", field_j->line, field_i->name);
+		return true;
+	    }
     return false;
 }
 
 //2.3
 bool isSameField(FieldList a, FieldList b){
+    if (L2_DEBUG)
+	    printf("check isSameField\n");
     if (a == NULL && b == NULL)
         return true;
     if (a == NULL || b == NULL)

@@ -33,7 +33,8 @@ int main(int argc, char** argv){
 	yyparse();
 
 	if (!lexical_error && !syntax_error){
-	//	show(root, 0);
+		if (L2_DEBUG)
+			show(root, 0);
 		SemanticsProgramAnalysis(root);
 	}
 
