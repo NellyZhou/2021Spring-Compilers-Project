@@ -505,6 +505,8 @@ Variable ParamDec(TreeNode* root){
 //*                     Statements                             *
 //**************************************************************
 void CompSt(TreeNode* root, Function f){
+    if (L2_DEBUG)
+	printf("reached CompSt\n");
     if (root == NULL)
         return;
     int count_node = countChild(root);
@@ -548,7 +550,7 @@ void Stmt(TreeNode* root, Function f){
     }
     
     //-> CompSt
-    if (count_node == 1 && strcmp(childNode(root, 0)->name, "ParamDec") == 0){
+    if (count_node == 1 && strcmp(childNode(root, 0)->name, "CompSt") == 0){
         CompSt(childNode(root, 0), f);
     }
     
@@ -612,6 +614,8 @@ FieldList DefList(TreeNode* root, bool in_struct_field){
         FieldList deflist_field = DefList(childNode(root, 1), in_struct_field);
         if (in_struct_field){
             FieldList tmp_field = def_field;
+	    if (tmp_field == NULL)
+		    return deflist_field;
             while (tmp_field->tail != NULL){
                 tmp_field = tmp_field->tail;
             }
@@ -703,6 +707,13 @@ FieldList Dec(TreeNode* root, Type t, bool in_struct_field){
         TreeNode* node_assignop = childNode(root, 1);
         if (in_struct_field){
             printf("Error type 15 at Line %d: Illegal structure definition assignment.\n", node_assignop->line);
+            FieldList tmp_field = (FieldList)malloc(sizeof(FieldList_));
+            tmp_field->name = (char*)malloc(sizeof(char) * (strlen(current_variable->name) + 1));
+            strcpy(tmp_field->name, current_variable->name);
+            tmp_field->type = current_variable->type;
+	    tmp_field->line = childNode(root, 0)->line;
+            tmp_field->tail = NULL;
+            return tmp_field;
         } else {
             Type exp_type = Exp(childNode(root, 2));
             Type variable_type = current_variable->type;
@@ -720,13 +731,25 @@ FieldList Dec(TreeNode* root, Type t, bool in_struct_field){
 //**************************************************************
 Type Exp(TreeNode* root){
     if (L2_DEBUG)
-	printf("reached Exp\n");
+	printf("reached Exp  ");
     if (root == NULL)
         return NULL;
     int count_node = countChild(root);
+    if (L2_DEBUG){
+	printf("with %d childs\n", count_node);
+		printf("\n\n");
+		show(root, 0);
+		printf("\n\n");
     
+    }
     //-> Exp ASSIGNOP Exp
     if (count_node == 3 && strcmp(childNode(root, 0)->name, "Exp") == 0 && strcmp(childNode(root, 1)->name, "ASSIGNOP") == 0 && strcmp(childNode(root, 2)->name, "Exp") == 0){
+        if (L2_DEBUG){
+		printf("\t a = b\n");
+		printf("\n\n");
+		show(childNode(root, 0), 0);
+		printf("\n\n");
+	}
         Type exp_type_a = Exp(childNode(root, 0));
         Type exp_type_b = Exp(childNode(root, 2));
         if (!isLeftValueExp(childNode(root, 0))){
@@ -938,10 +961,15 @@ Type Exp(TreeNode* root){
     
     //-> Exp LB Exp RB
     if (count_node == 4 && strcmp(childNode(root, 0)->name, "Exp") == 0 && strcmp(childNode(root, 1)->name, "LB") == 0 && strcmp(childNode(root, 2)->name, "Exp") == 0 && strcmp(childNode(root, 3)->name, "RB") == 0){
+        if (L2_DEBUG){
+		printf("\t a[b]\n");
+	}
         Type exp_type_a = Exp(childNode(root, 0));
         Type exp_type_b = Exp(childNode(root, 2));
         TreeNode* node_lb = childNode(root, 1);
-        
+        if (L2_DEBUG){
+		printf("exp_type_a is type %d\n", exp_type_a->kind);
+	}
         if (exp_type_a == NULL || exp_type_b == NULL)
             return NULL;
         if (exp_type_a->kind != ARRAY){
@@ -958,6 +986,9 @@ Type Exp(TreeNode* root){
     
     //-> Exp DOT ID
     if (count_node == 3 && strcmp(childNode(root, 0)->name, "Exp") == 0 && strcmp(childNode(root, 1)->name, "DOT") == 0 && strcmp(childNode(root, 2)->name, "ID") == 0){
+        if (L2_DEBUG){
+		printf("\t a.b\n");
+	}
         Type exp_type = Exp(childNode(root, 0));
         TreeNode* node_dot = childNode(root, 1);
         TreeNode* node_id = childNode(root, 2);
@@ -1040,7 +1071,7 @@ void Args(TreeNode* root, FieldList f, char* function_name){
         Type exp_type = Exp(childNode(root, 0));
         Type field_type = f->type;
         if (!isSameType(exp_type, field_type) || f->tail != NULL){
-            TreeNode* node_tmp = childNode(root, 1);
+            TreeNode* node_tmp = childNode(root, 0);
             printf("Error type 9 at Line %d: Function \"%s\" is not applicable for arguments.\n", node_tmp->line, function_name);
             return;
         }
