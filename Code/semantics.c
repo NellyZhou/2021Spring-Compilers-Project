@@ -15,8 +15,8 @@ unsigned int Hash_pjw(char* name){
     unsigned int val = 0, i;
     for (; *name; ++name){
         val = (val << 2) + *name;
-        if (i = val & ~0x3fff)
-            val = (val ^ (i >> 12)) & 0x3fff;
+        if (i = val & ~HASHLIST_VOLUMN)
+            val = (val ^ (i >> 12)) & HASHLIST_VOLUMN;
     }
     return val;
     
@@ -313,7 +313,7 @@ Type structSpecifier(TreeNode* root){
         t->u.structure = DefList(childNode(root, 3), true);
         
         FieldList f = t->u.structure;
-        if (f == NULL)  return NULL;
+        //if (f == NULL)  return NULL;
         if (SharingSameName(f, childNode(root, 1)->line)) return NULL;                //error 15
         if (!HashListAdd(STRUCTURE_TYPE, v, childNode(root, 1)->line)) return NULL;   //error 3
        
@@ -1126,10 +1126,14 @@ bool isLeftValueExp(TreeNode* root){
 
 //error 7
 bool isLogicExp(Type a){
+    if (a == NULL)
+	return false;
     return (a->kind == BASIC && a->u.basic == BASIC_INT);
 }
 
 bool isArithExp(Type a){
+    if (a == NULL)
+	return false;
     return (a->kind == BASIC);
 }
 
