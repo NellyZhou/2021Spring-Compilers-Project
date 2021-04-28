@@ -1,4 +1,4 @@
-# 编译原理课程Lab1
+# 编译原理课程Lab2
 
 | 班级   | 队伍  | 组长             | 组员             | 任务号 | 联系邮箱                                                     |
 | ------ | ----- | ---------------- | ---------------- | ------ | ------------------------------------------------------------ |
@@ -6,53 +6,78 @@
 
 ## 实现功能
 
-本程序能够对使用C−−语言书写的源代码进行词法分析和语法分析，并打印分析结果，具体实现了以下这些功能：
+本次实验在实验一词法分析与语法分析的基础上，完成了语义分析和类型检查，并打印分析结果。完成了必做内容和选做内容2.3。
 
-* **识别词法错误并按要求输出错误信息**
+本次实验的主要实现都在`semantics.h`与`semantics.c`中。功能实现的细节可以进一步细分为如下：
 
-  借助flex实现了词法分析。在lexical.l中通过正则表达式识别出相应的词法单元，并返回相应的token。重点在于识别INT,FLOAT和ID，对应的正则表达式如下：
+### 符号表
 
-  ```
-  int_form	0|([1-9]{digital}*)
-  commonfloat	{int_form}\.{digital}+
-  float_form	{commonfloat}
-  id_form		{letter_}({letter_}|{digital})*	
-  ```
+本次实验采用哈希表来组织符号表，用拉链法来解决冲突。具体数据结构为：创建一个大小为0x3fff的数组，数组中的元素为HashNode，其主要属性是kind（判断是基本类型int/float，还是结构体，还是函数），和一个联合体表示变量和函数（结构体当作变量处理），以及一个next指针连接下一个相同哈希值的元素。
 
-  对于那些无法匹配任何正确的词法单元的内容，便认定是词法错误，在所有规则最后加上对于词法错误的处理：设置的lexical_error（记录词法错误的标志位）置为1，打印错误信息。
+相关函数有：
 
-* **识别语法错误并按要求输出错误信息**
+```C
+extern void HashListInitial();
+extern unsigned int Hash_pjw(char* name);           //Hash Function
+extern bool HashListAdd(HashNodeType node_type, void* u, int current_line);       //insert successfully return true; false
+extern void* HashListFind(HashNodeType node_type, char* name);
+```
 
-  借助bison完成了语法分析。根据C--语法定义相应的词法单元，指定一些终结符的优先级与结合性，书写相应产生式，重新定义yyerror()函数使之能按照要求输出错误信息。通过编写一些包含error的产生式实现了错误恢复，通过传入不同的msg给yyerror()，完成了一些特殊的语法错误信息打印，例如括号丢失、分号丢失、非法id等。
+其中填表部分，根据具体类型创建不同的HashNode，计算哈希值，若无冲突则直接插入，若有冲突则插入到链表末尾，在这过程中检查是否有重名，若有报错类型3，否则顺利插入。
 
-* **识别八进制数和十六进制数并按要求输出错误信息**
+至于查找部分，根据给定的名称计算哈希值，在对应的桶内查找，若找到则返回对用的变量/函数/结构体，若未找到则返回空指针。
 
-  编写相应的的正则表达式来识别正确和错误格式的八进制数和十六进制数，正确的返回对应词法单元，错误的打印错误信息。
+### 语义分析
 
-* **若输入文件无任何词法或语法错误，按要求打印语法树**
+大体而言，基于实验一的语法树进行遍历并填表供分析。关于信息的传递，是通过SyntaxTree的结点，每一层check使用的是哪一个上下文无关语言的句柄展开，然后调用，把综合属性作为返回值在调用结束后整合，继承属性在调用函数的参数中代入。主要函数如下：
 
-  语法树部分的代码实现在SyntaxTree.h与SyntaxTree.c中，自定义`TreeNode`数据结构来表示语法树节点，数据结构如下：
+```C
+//************** Specifiers ******************************
+extern Type Specifier(TreeNode* root);             
+extern Type structSpecifier(TreeNode* root);
+extern char* OptTag(TreeNode* root);
+extern char* Tag(TreeNode* root);
 
-  ```
-  typedef struct TreeNode{
-  	char name[32];//名称
-  	int node_type;//语法单元或词法单元
-  	int line;//位置
-  	int value_type;//节点值的类型（INT/FLOAT/TYPE/ID/OCT/HEX）
-  	union {//相应的值
-  		unsigned int int_val;
-  		float float_val;
-  		char type_val[32];
-  		char id_val[32];
-  	};
-  
-  	struct TreeNode *first_child;//子节点头
-  	struct TreeNode *last_child;//子节点尾
-  	struct TreeNode *next;//下一兄弟节点
-  }TreeNode;
-  ```
+//************** Declarators ******************************
+extern Variable VarDec(TreeNode* root, Type t, bool in_struct_field);
+extern Function FunDec(TreeNode* root, Type t);    
+extern FieldList VarList(TreeNode* root, int* count);
+extern Variable ParamDec(TreeNode* root);
 
-  create_TreeNode函数负责节点的创建，connect函数负责连接父子节点，show负责按先序遍历打印语法树节点。
+
+//************** Statements ******************************
+extern void CompSt(TreeNode* root, Function f);
+extern void StmtList(TreeNode* root, Function f);
+extern void Stmt(TreeNode* root, Function f);
+
+//************** Local Definitions *************************
+extern FieldList DefList(TreeNode* root, bool in_struct_field);
+extern FieldList Def(TreeNode* root, bool in_struct_field);
+extern FieldList DecList(TreeNode* root, Type t, bool in_struct_field);
+extern FieldList Dec(TreeNode* root, Type t, bool in_struct_field);
+
+//************** Expressions ******************************
+extern Type Exp(TreeNode* root);
+extern void Args(TreeNode* root, FieldList f, char* function_name);
+
+```
+
+另外check相关的函数如下：
+
+```C
+//============== Checking Conditions ======================
+//error 5/7/8
+extern bool isSameType(Type a, Type b);
+//error 6
+extern bool isLeftValueExp(TreeNode* root);
+//error 7
+extern bool isLogicExp(Type a);
+extern bool isArithExp(Type a);
+//error 15
+extern bool SharingSameName(FieldList f, int current_line);
+//2.3
+extern bool isSameField(FieldList a, FieldList b);
+```
 
 ## 编译方法
 
@@ -64,29 +89,22 @@
 
 使用makefile进行编译，在命令行输入`make`编译；输入`make test`对Test目录中的文件进行测试，也可以使用`./parser ../Test/test.cmm `对某一指定文件进行测试。
 
-## 词法分析与语法分析
-
-保证一行仅报错一次：
-    在`lexical.l`与`syntax.y`中申明变量`pre_lineno`记录前一次报错行号。当当前错误行与先前报错在相同行号时，忽略当前报错。
-
-## 错误恢复
-
-对于符号缺失的处理方法与注意事项：
-
-- 与下一个错误符号进行匹配，错误恢复并报错。（见附录中IF语句缺少分号的处理方法）
-- 设置优先级低于正确语法产生式的错误恢复产生式，并报错。（如：普通情况下`;`, `]`, `}`, `)` 缺失的处理方法） 
-- 为避免二义性，错误恢复时需要增加一些语法单元（如：*error_Exp*），通过此进行错误恢复。
-  
-
-对于其他错误的恢复方式：
-
-- 尽量通过成对的`)`, `]`, `}`与一行语句的终结; 进行恢复。将之前的错误归结为正确语法单元，并继续进行语法分析。
 
 
-## 附录
+
+## 实验感悟
 
 * 实验中遇到的问题与解决方法
-  * Exp -> Exp LB Exp RB. 为了避免冲突，引入新的状态 *error_Exp*.
-  * Stmt -> Exp error vs. Stmt -> IF LP Exp RP Exp ELSE. 通过-d同时对照syntax.output，发现接受ELSE时率先发生error，而导致前者具体错误会被同一行忽略。故在判断IF中Stmt是否缺少‘;’时加入后者。
-  * 负数的处理出现错误。在语法分析树中，需要将整型值的输出设为 %u，类型应该为unsigned int
+  * test12中对于[]中的浮点数，起初的判断未包含这一情况。
+  * 针对lab1的测试用例，发现建立语法树时，空姐点也需要生成，在lab1时采取了不生成的做法，本次实验中改过。
+  * structspecifier拼写错误以至于出现问题
+  * hash函数中括号错误
+  * 在Exp函数中，返回类型不同时仍需要返回int类型以做错误恢复。
+  * struct type参数错误
+  * 所有错误的行号问题：在lexical token也需要记录行号
+  * 注意错误15，定义时赋值的返回值
+  * m6，struct为空时仍需要建立节点
+  * 在判断逻辑/算数运算时，注意指针是否为空，否则可能出现段错误。
+* 在本次实验中，运用到了大量指针，有内存泄漏的隐患，这个也许可以进一步改进。
+
 * 感谢https://github.com/massimodong/compilers-tests提供的测试数据
