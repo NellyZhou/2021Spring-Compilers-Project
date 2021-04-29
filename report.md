@@ -12,14 +12,26 @@
 
 ### 符号表
 
-本次实验采用哈希表来组织符号表，用拉链法来解决冲突。具体数据结构为：创建一个大小为0x3fff的数组，数组中的元素为HashNode，其主要属性是kind（判断是基本类型int/float，还是结构体，还是函数），和一个联合体表示变量和函数（结构体当作变量处理），以及一个next指针连接下一个相同哈希值的元素。
+本次实验采用哈希表来组织符号表，用拉链法来解决冲突。具体数据结构为：创建一个大小为0x3fff的数组，数组中的元素为HashNode，其主要属性是kind（判断是基本类型int/float，还是结构体，还是函数），和一个联合体表示变量和函数（结构体当作变量处理）：若节点是函数，则含有返回值，参数和名字；若节点是变量或结构体，则含有名字和type，其中type含有一个联合体，依据具体类型的不同（基本类型/数组/结构体）含有不同的成员（基本类型/数组元素类型和大小/域）。以及一个next指针连接下一个相同哈希值的元素。
+
+```C
+typedef struct HashNode{
+    HashNodeType kind;
+    union {
+        Variable variable;
+        Function function;
+    }u;
+    struct HashNode* next;
+}HashNode;
+```
 
 相关函数有：
 
 ```C
 extern void HashListInitial();
 extern unsigned int Hash_pjw(char* name);           //Hash Function
-extern bool HashListAdd(HashNodeType node_type, void* u, int current_line);       //insert successfully return true; false
+extern bool HashListAdd(HashNodeType node_type, void* u, int current_line);       
+//insert successfully return true; else false
 extern void* HashListFind(HashNodeType node_type, char* name);
 ```
 
@@ -37,29 +49,23 @@ extern Type Specifier(TreeNode* root);
 extern Type structSpecifier(TreeNode* root);
 extern char* OptTag(TreeNode* root);
 extern char* Tag(TreeNode* root);
-
 //************** Declarators ******************************
 extern Variable VarDec(TreeNode* root, Type t, bool in_struct_field);
 extern Function FunDec(TreeNode* root, Type t);    
 extern FieldList VarList(TreeNode* root, int* count);
 extern Variable ParamDec(TreeNode* root);
-
-
 //************** Statements ******************************
 extern void CompSt(TreeNode* root, Function f);
 extern void StmtList(TreeNode* root, Function f);
 extern void Stmt(TreeNode* root, Function f);
-
 //************** Local Definitions *************************
 extern FieldList DefList(TreeNode* root, bool in_struct_field);
 extern FieldList Def(TreeNode* root, bool in_struct_field);
 extern FieldList DecList(TreeNode* root, Type t, bool in_struct_field);
 extern FieldList Dec(TreeNode* root, Type t, bool in_struct_field);
-
 //************** Expressions ******************************
 extern Type Exp(TreeNode* root);
 extern void Args(TreeNode* root, FieldList f, char* function_name);
-
 ```
 
 另外check相关的函数如下：
@@ -95,16 +101,20 @@ extern bool isSameField(FieldList a, FieldList b);
 ## 实验感悟
 
 * 实验中遇到的问题与解决方法
-  * test12中对于[]中的浮点数，起初的判断未包含这一情况。
-  * 针对lab1的测试用例，发现建立语法树时，空姐点也需要生成，在lab1时采取了不生成的做法，本次实验中改过。
-  * structspecifier拼写错误以至于出现问题
-  * hash函数中括号错误
-  * 在Exp函数中，返回类型不同时仍需要返回int类型以做错误恢复。
-  * struct type参数错误
-  * 所有错误的行号问题：在lexical token也需要记录行号
-  * 注意错误15，定义时赋值的返回值
-  * m6，struct为空时仍需要建立节点
-  * 在判断逻辑/算数运算时，注意指针是否为空，否则可能出现段错误。
+  * 需要注意实验一代码到实验二代码的复用性。如：
+    * 基于lab1生成的语法树将生成空串的语法单元省略，而之后lab2还原语法分析需这些节点。故将lab1时采取了不生成的做法在本次实验中进行更改。
+    * 所有错误的行号问题：在lexical token也需要记录行号。
+    * 需要增添两个接口，用于返回语法树节点的子节点信息。
+  * 需要注意实现代码时的错误避免。如：
+    * struct type参数错误
+    * 由于ParamDec拼写错误造成定义形参不会进行重复判断
+    * StructSpecifier大小写错误以至于与实验一数据无法匹配
+  * 需要注意编译样例中的边界条件。如：
+    * struct定义成员域为空时仍需要建立节点，否则这个结构类型将不会加入符号表。（测试m6.cmm时发现的错误）
+    * test12中对于[]中的浮点数，起初的判断未包含这一情况
+  * 需要注意程序的鲁棒性。
+    * 在使用指针前务必判断其是否指向特定对象。如：在判断逻辑/算数运算时，注意指针是否为空，否则可能出现段错误。
+    * 在检测出产生部分语义错误后，不能单一的将该节点的综合属性设置为NULL，而应该进行错误恢复。如：在Exp函数中，Exp->Exp RELOP EXP类型不同时仍需要返回int类型以做错误恢复。否则在IF与WHILE语句中判断是否为逻辑运算类型时将会出现错误。
 * 在本次实验中，运用到了大量指针，有内存泄漏的隐患，这个也许可以进一步改进。
 
 * 感谢https://github.com/massimodong/compilers-tests提供的测试数据
