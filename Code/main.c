@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "SyntaxTree.h"
 #include "semantics.h"
+#include "IR_translater.h"
 
 //#define __YY_DEBUG__
 
@@ -8,6 +9,7 @@ TreeNode *root = NULL;
 int lexical_error = 0;
 int syntax_error = 0;
 int pre_lineno = -1;
+FILE* fp;
 
 extern FILE* yyin;
 #ifdef __YY_DEBUG__
@@ -25,6 +27,7 @@ int main(int argc, char** argv){
             perror(argv[1]);
             return 1;
 	}
+	fp = fopen(argv[2],"w+");
 
 	yyrestart(f);
 #ifdef __YY_DEBUG__
@@ -36,6 +39,7 @@ int main(int argc, char** argv){
 		if (L2_DEBUG)
 			show(root, 0);
 		SemanticsProgramAnalysis(root);
+		IR_Translater(root);
 	}
 
 	return 0;

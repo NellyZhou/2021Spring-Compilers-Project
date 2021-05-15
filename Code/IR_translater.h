@@ -1,6 +1,8 @@
 #ifndef __IR_TRANSLATER_H__
 #define __IR_TRANSLATER_H__
 #include "SyntaxTree.h"
+#include "semantics.h"
+#include <stdlib.h>
 
 typedef int bool;
 #define true 1
@@ -12,9 +14,10 @@ typedef struct InterCodes_* InterCodes;
 typedef struct ArgList_* ArgList;
 struct Operand_ {
     enum {
-        VARIABLE, CONSTANT, ADDRESS,
-        FUNCTION,
-        RELOP /*..*/
+        IR_VARIABLE, CONSTANT, ADDRESS, POINTER,
+        IR_FUNCTION,
+        RELOP,
+        TEMP, LABEL /*..*/
     }kind;
     union {
         unsigned int int_val;
@@ -55,7 +58,10 @@ extern InterCodes InterCodesList;
 //
 extern Operand new_temp();
 extern Operand new_label();
-extern Operand insert_intercode_operation(InterCodes intercodes_head, InterCode new_intercode);
+extern void insert_intercode_operation(InterCodes intercodes_head, InterCode new_intercode);
+
+//
+extern void show_IR();
 
 //************** High-level Definitions *****************
 extern void IR_Translater(TreeNode* root);
@@ -64,7 +70,7 @@ extern void translate_ExtDef(TreeNode* root);
 extern void translate_ExtDecList(TreeNode* root);   
 
 //************** Declarators ******************************
-extern void translate_VarDec(TreeNode* root, bool is_function_param);
+extern Operand translate_VarDec(TreeNode* root, bool is_function_param);
 extern void translate_FunDec(TreeNode* root);    
 extern void translate_VarList(TreeNode* root);
 extern void translate_ParamDec(TreeNode* root);
@@ -88,7 +94,7 @@ extern void translate_Cond(TreeNode* root, Operand label_true, Operand label_fal
 
 //
 
-extern Operand translate_Exp_left(TreeNode* root);
+extern Operand translate_Exp_left(TreeNode* root, Operand place);
 
 
 #endif

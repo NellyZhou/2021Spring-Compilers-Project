@@ -1,0 +1,14 @@
+FUNCTION f :
+PARAM k
+PARAM a
+t1 := #3
+RETURN t1
+FUNCTION main :
+t3 := #10
+t4 := #4
+ARG t4
+ARG t3
+t2 := CALL f
+i := t2
+t5 := #0
+RETURN t5

@@ -1,9 +1,16 @@
 #include "IR_translater.h"
 
+#define DEBUG_LAB3
+
 InterCodes InterCodesList;
-static Operand temp_zero, temp_one;
+static Operand temp_zero, temp_one, temp_four;
+static int temp_index, label_index;
+extern FILE *fp;
 
 static void initial(){
+    temp_index = 1;
+    label_index = 1;
+    InterCodesList = (InterCodes)malloc(sizeof(InterCodes_));
     temp_zero = (Operand)malloc(sizeof(Operand_));
     {
         temp_zero->kind = CONSTANT;
@@ -14,7 +21,202 @@ static void initial(){
         temp_one->kind = CONSTANT;
         temp_one->u.int_val = 1;
     }
+    temp_four = (Operand)malloc(sizeof(Operand_));
+    {
+        temp_four->kind = CONSTANT;
+        temp_four->u.int_val = 4;
+    }
     return;
+}
+
+//
+
+Operand new_temp(){
+#ifdef DEBUG_LAB3
+    printf("new temp\n");
+#endif
+    char str[20];
+    int tmp = temp_index;
+    int i = 1;
+    str[0] = 't';
+    while (tmp != 0){
+        int x = tmp % 10;
+        str[i] = (char)('0' + x);
+        i++; 
+        tmp = tmp / 10;
+    }
+    str[i] = '\0';
+    Operand temp = (Operand)malloc(sizeof(Operand_));
+    {
+        temp->kind = TEMP;
+        strcpy(temp->u.value, str);
+    }
+    temp_index++;
+    return temp;
+}
+Operand new_label(){
+    char str[32];
+    int tmp = label_index;
+    int i = 1;
+    str[0] = 'L';
+    while (tmp != 0){
+        int x = tmp % 10;
+        str[i] = (char)('0' + x);
+        i++; tmp = tmp / 10;
+    }
+    str[i] = '\0';
+    Operand label = (Operand)malloc(sizeof(Operand_));
+    {
+        label->kind = LABEL;
+        strcpy(label->u.value, str);
+    }
+    label_index++;
+    return label;
+}
+void insert_intercode_operation(InterCodes intercodes_head, InterCode new_intercode){
+    InterCodes ptr = InterCodesList;
+    while (ptr->next != NULL){
+        ptr = ptr->next;
+    }
+    InterCodes new_code = (InterCodes)malloc(sizeof(InterCodes_));
+    {
+        new_code->code = new_intercode;
+        new_code->prev = ptr;
+        new_code->next = NULL;
+    }
+    ptr->next = new_code;
+    return;
+}
+
+void show_Op(Operand op){
+    if (op == NULL)
+        return;
+    switch (op->kind)
+    {
+    case CONSTANT:fprintf(fp,"#%d",op->u.int_val);break;
+    case ADDRESS:fprintf(fp,"&%s",op->u.value);break;
+    case POINTER:fprintf(fp,"*%s",op->u.value);break;
+    
+    default:fprintf(fp,"%s",op->u.value);break;
+    }
+    return;
+}
+
+void show_intercode(InterCode code){
+    if (code == NULL)
+        return;
+    switch (code->kind)
+    {
+    case SET_LABEL:
+        fprintf(fp, "LABEL %s :\n", code->u.sinop.op->u.value);
+        break;
+    case FUNCTION_ENTRY:
+        fprintf(fp, "FUNCTION %s :\n", code->u.sinop.op->u.value);
+        break;
+    case ASSIGN:
+        if (code->u.assign.left == NULL)
+            break;
+        show_Op(code->u.assign.left);
+        fprintf(fp, " := ");
+        show_Op(code->u.assign.right);
+        fprintf(fp, "\n");
+        break;
+    case ADD:
+    case SUB:
+    case MUL:
+    case DIV:
+        show_Op(code->u.binop.result);
+        fprintf(fp, " := ");
+        show_Op(code->u.binop.op1);
+        switch (code->kind)
+        {
+        case ADD: fprintf(fp, " + ");break;
+        case SUB: fprintf(fp, " - ");break;
+        case MUL: fprintf(fp, " * ");break;
+        case DIV: fprintf(fp, " / ");break;
+        default:break;
+        }
+        show_Op(code->u.binop.op2);
+        fprintf(fp, "\n");
+        break;
+    case GET_ADDR:
+        /*TODO*/
+        break;
+    case GET_VALUE:
+        /*TODO*/
+        break;
+    case ASSIGN_ADDR:
+        /*TODO*/
+        break;
+    case GOTO:
+        fprintf(fp, "GOTO ");
+        show_Op(code->u.sinop.op);
+        fprintf(fp, "\n");
+        break;
+    case IFGOTO: 
+        fprintf(fp, "IF ");
+        show_Op(code->u.ifgoto_op.op1);
+        show_Op(code->u.ifgoto_op.relop);
+        show_Op(code->u.ifgoto_op.op2);
+        fprintf(fp, " GOTO ");
+        show_Op(code->u.ifgoto_op.label);
+        fprintf(fp, "\n");
+        break;
+    case RETURN:
+        fprintf(fp, "RETURN ");
+        show_Op(code->u.sinop.op);
+        fprintf(fp, "\n");
+        break;
+    case DEC:
+        /* TODO */
+        break;
+    case ARG:
+        fprintf(fp, "ARG ");
+        show_Op(code->u.sinop.op);
+        fprintf(fp, "\n");
+        break;
+    case CALL:
+        if (code->u.assign.left != NULL){
+            show_Op(code->u.assign.left);
+            fprintf(fp, " := ");
+        }
+        fprintf(fp, "CALL ");
+        show_Op(code->u.assign.right);
+        fprintf(fp, "\n");
+        break;
+    case PARAM:
+        fprintf(fp, "PARAM ");
+        show_Op(code->u.sinop.op);
+        fprintf(fp, "\n");
+        break;
+    case READ:
+        fprintf(fp, "READ ");
+        show_Op(code->u.sinop.op);
+        fprintf(fp, "\n");
+        break;
+    case WRITE:
+        fprintf(fp, "WRITE ");
+        show_Op(code->u.sinop.op);
+        fprintf(fp, "\n");
+        break;
+    
+    default:
+        break;
+    }
+}
+
+void show_IR(){
+    InterCodes ptr = InterCodesList->next;
+    while (ptr != NULL){
+#ifdef DEBUG_LAB3
+    printf("print one\n");
+#endif 
+        show_intercode(ptr->code);
+#ifdef DEBUG_LAB3
+    printf("successfully\n");
+#endif
+        ptr = ptr->next;
+    }
 }
 
 //**************************************************************
@@ -27,10 +229,17 @@ void IR_Translater(TreeNode* root){
     initial();
     if (root == NULL)
         return;
+#ifdef DEBUG_LAB3
+    printf("translate start up\n");
+#endif
     //-> ExtDefList
     if (strcmp(childNode(root, 0)->name, "ExtDefList") == 0){
         translate_ExtDefList(childNode(root, 0));
     }
+#ifdef DEBUG_LAB3
+    printf("translate successfully---------\n");
+#endif
+    show_IR();
     return;
 }
 
@@ -66,37 +275,110 @@ void translate_ExtDef(TreeNode* root){
 //**************************************************************
 /*
     TODO: 
-        translate_FunDec
-        translate_vardec
+        translate_FunDec    complete
+        translate_VarDec:
+            in_function:
+                normal      [ok]
+                sturct      []
+            not_params:
+                normal      [ok]
+                struct      []
 
 */
-void translate_VarDec(TreeNode* root, bool is_function_param){
+Operand translate_VarDec(TreeNode* root, bool is_function_param){
+#ifdef DEBUG_LAB3
+    printf("tanslate_FunDec\n");
+#endif
     if (root == NULL)
-        return;
+        return NULL;
     int count_node = countChild(root);
 
     //-> ID
     if (count_node == 1 && strcmp(childNode(root, 0)->name, "ID") == 0){
+        char *current_var_name = childNode(root, 0)->id_val;
+        Operand tmp = (Operand)malloc(sizeof(Operand_));
+        {
+            tmp->kind = IR_VARIABLE;
+            strcpy(tmp->u.value, current_var_name);
+        }
+
+        if (is_function_param){
+            // [PARAM ID]
+            InterCode new_code = (InterCode)malloc(sizeof(InterCode_));
+            {
+                new_code->kind = PARAM;
+                new_code->u.sinop.op = tmp;
+            }
+            insert_intercode_operation(InterCodesList, new_code);
+            // [DEC ID [size]]
+            /* TODO */
+            return NULL;
+        } else {
+            // [DEC ID [size]]
+            /* TODO */
+            return tmp;
+        } 
+    
     }
     
     //-> VarDec LB INT RB
     if (count_node == 4 && strcmp(childNode(root, 0)->name, "VarDec") == 0 && strcmp(childNode(root, 1)->name, "LB") == 0 && strcmp(childNode(root, 2)->name, "INT") == 0 && strcmp(childNode(root, 3)->name, "RB") == 0){
-        translate_VarDec(childNode(root, 0), is_function_param);
+        if (is_function_param){
+            printf("Cannot translate: Code contains illegal function parameters.\n");
+            return NULL;
+        } else {
+            TreeNode * next_root = childNode(root, 0);
+            if (countChild(next_root) != 1){
+               printf("Cannot translate: Code contains multi-dimension array.\n");
+               return NULL; 
+            }
+            // [DEC ID [size]]
+        }
+        
     }
     
-    return;
+    return NULL;
 }
 
 void translate_FunDec(TreeNode* root){   
+#ifdef DEBUG_LAB3
+    printf("tanslate_FunDec\n");
+#endif
     if (root == NULL)
         return;
     int count_node = countChild(root);
 
-    /*TODO: insert function name label*/
-
     //-> ID LP VarList RP
     if (count_node == 4 && strcmp(childNode(root, 0)->name, "ID") == 0 && strcmp(childNode(root, 1)->name, "LP") == 0 && strcmp(childNode(root, 2)->name, "VarList") == 0 && strcmp(childNode(root, 3)->name, "RP") == 0){
+        char *current_func_name = childNode(root, 0)->id_val;
+        Operand func = (Operand)malloc(sizeof(Operand_));
+        {
+            func->kind = IR_FUNCTION;
+            strcpy(func->u.value, current_func_name);
+        }
+        InterCode new_code = (InterCode)malloc(sizeof(InterCode_));
+        {
+            new_code->kind = FUNCTION_ENTRY;
+            new_code->u.sinop.op = func;
+        }
+        insert_intercode_operation(InterCodesList, new_code);
         translate_VarList(childNode(root, 2));
+    }
+
+    //-> ID LP RP
+    if (count_node == 3 && strcmp(childNode(root, 0)->name, "ID") == 0 && strcmp(childNode(root, 1)->name, "LP") == 0 && strcmp(childNode(root, 2)->name, "RP") == 0){
+        char *current_func_name = childNode(root, 0)->id_val;
+        Operand func = (Operand)malloc(sizeof(Operand_));
+        {
+            func->kind = IR_FUNCTION;
+            strcpy(func->u.value, current_func_name);
+        }
+        InterCode new_code = (InterCode)malloc(sizeof(InterCode_));
+        {
+            new_code->kind = FUNCTION_ENTRY;
+            new_code->u.sinop.op = func;
+        }
+        insert_intercode_operation(InterCodesList, new_code);
     }
     return;
 }
@@ -121,7 +403,7 @@ void translate_VarList(TreeNode* root){
 
 void translate_ParamDec(TreeNode* root){
     if (root == NULL)
-        return NULL;
+        return;
     int count_node = countChild(root);
 
     //-> Specifier VarDec
@@ -139,6 +421,9 @@ void translate_ParamDec(TreeNode* root){
     COMPLETE
 */
 void translate_CompSt(TreeNode* root){
+#ifdef DEBUG_LAB3
+    printf("tanslate_CompSt\n");
+#endif
     if (root == NULL)
         return;
     int count_node = countChild(root);
@@ -153,6 +438,9 @@ void translate_CompSt(TreeNode* root){
 }
 
 void translate_StmtList(TreeNode* root){
+#ifdef DEBUG_LAB3
+    printf("tanslate_StmtList\n");
+#endif
     if (root == NULL)
         return;
     int count_node = countChild(root);
@@ -168,6 +456,9 @@ void translate_StmtList(TreeNode* root){
 }
 
 void translate_Stmt(TreeNode* root){
+#ifdef DEBUG_LAB3
+    printf("tanslate_Stmt\n");
+#endif
     if (root == NULL)
         return;
     int count_node = countChild(root);
@@ -308,7 +599,8 @@ void translate_Stmt(TreeNode* root){
 //**************************************************************
 /*
     TODO:
-        lots of things
+        translate_Dec:
+
 */
 void translate_DefList(TreeNode* root){
     if (root == NULL)
@@ -338,7 +630,7 @@ void translate_Def(TreeNode* root){
 
 void translate_DecList(TreeNode* root){
     if (root == NULL)
-        return NULL;
+        return;
     int count_node = countChild(root);
      
     //-> Dec
@@ -366,9 +658,21 @@ void translate_Dec(TreeNode* root){
     
     //-> VarDec ASSIGNOP Exp
     if (count_node == 3 && strcmp(childNode(root, 0)->name, "VarDec") == 0 && strcmp(childNode(root, 1)->name, "ASSIGNOP") == 0 && strcmp(childNode(root, 2)->name, "Exp") == 0){
-        translate_VarDec(childNode(root, 0), false);
-        
-        translate_Exp(childNode(root, 2), 1/*temp_variable*/);
+        Operand tmp = translate_VarDec(childNode(root, 0), false);
+        Operand t1 = new_temp();
+        translate_Exp(childNode(root, 2), t1/*temp_variable*/);
+        if (tmp != NULL){
+            // [tmp := t1]
+            InterCode new_code = (InterCode)malloc(sizeof(InterCode_));
+            {
+                new_code->kind = ASSIGN;
+                new_code->u.assign.left = tmp;
+                new_code->u.assign.right = t1;
+            }
+            insert_intercode_operation(InterCodesList, new_code);
+        } else {
+            /* TODO */
+        }
     }
     return;
 }
@@ -377,28 +681,38 @@ void translate_Dec(TreeNode* root){
 //*                     Expressions                            *
 //**************************************************************
 /*
-    TODO
+    TODO:
         translate_Exp: 
-            structure & array 
-            mind pointer in ID(ARGS)
+            structure & array               []
+            mind pointer in ID(ARGS)        [ok]
         translate_Exp_Left:
-            except ID
+            array                           []
+            structure                       []
 */
 
 void translate_Exp(TreeNode* root, Operand place){
+#ifdef DEBUG_LAB3
+    printf("tanslate_Exp\n");
+#endif
     if (root == NULL)
         return;
     int count_node = countChild(root);
 
     //-> Exp ASSIGNOP Exp
     if (count_node == 3 && strcmp(childNode(root, 0)->name, "Exp") == 0 && strcmp(childNode(root, 1)->name, "ASSIGNOP") == 0 && strcmp(childNode(root, 2)->name, "Exp") == 0){
-        Operand left = translate_Exp_left(childNode(root, 0));
+        Operand t0 = new_temp();
+        Operand left = translate_Exp_left(childNode(root, 0), t0);
         Operand t1 = new_temp();
         translate_Exp(childNode(root, 2), t1);
         InterCode new_code = (InterCode)malloc(sizeof(InterCode_));
         {
-            new_code->kind = ASSIGN;
-            new_code->u.assign.left = left;
+            if (left != NULL){
+                new_code->kind = ASSIGN;
+                new_code->u.assign.left = left;
+            } else {
+                new_code->kind = ASSIGN_ADDR;
+                new_code->u.assign.left = t0;
+            }
             new_code->u.assign.right = t1;
         }
         insert_intercode_operation(InterCodesList, new_code);
@@ -406,7 +720,8 @@ void translate_Exp(TreeNode* root, Operand place){
         {
             new_code->kind = ASSIGN;
             new_code->u.assign.left = place;
-            new_code->u.assign.right = left;
+            new_code->u.assign.right = t1;
+            
         }
         insert_intercode_operation(InterCodesList, new_code);
     }
@@ -543,7 +858,7 @@ void translate_Exp(TreeNode* root, Operand place){
         char *current_func_name = childNode(root, 0)->id_val;
         Operand right = (Operand)malloc(sizeof(Operand_));
         {
-            right->kind = FUNCTION;
+            right->kind = IR_FUNCTION;
             strcpy(right->u.value, current_func_name);
         }
         // arg_list = NULL
@@ -563,7 +878,7 @@ void translate_Exp(TreeNode* root, Operand place){
             }
             insert_intercode_operation(InterCodesList, new_code);
             // [place := #0]
-            InterCode new_code = (InterCode)malloc(sizeof(InterCode_));
+            new_code = (InterCode)malloc(sizeof(InterCode_));
             {
                 new_code->kind = ASSIGN;
                 new_code->u.assign.left = place; 
@@ -598,7 +913,7 @@ void translate_Exp(TreeNode* root, Operand place){
         char *current_func_name = childNode(root, 0)->id_val;
         Operand right = (Operand)malloc(sizeof(Operand_));
         {
-            right->kind = FUNCTION;
+            right->kind = IR_FUNCTION;
             strcpy(right->u.value, current_func_name);
         }
         if (strcmp(current_func_name, "read") == 0){
@@ -635,10 +950,10 @@ void translate_Exp(TreeNode* root, Operand place){
         char *current_var_name = childNode(root, 0)->id_val;
         Operand right = (Operand)malloc(sizeof(Operand_));
         {
-            right->kind = VARIABLE;
+            right->kind = IR_VARIABLE;
             strcpy(right->u.value, current_var_name);
         }
-        InterCode new_code = (InterCode)malloce(sizeof(InterCode_));
+        InterCode new_code = (InterCode)malloc(sizeof(InterCode_));
         {
             new_code->kind = ASSIGN;
             new_code->u.assign.left = place;
@@ -655,7 +970,7 @@ void translate_Exp(TreeNode* root, Operand place){
             right->kind = CONSTANT;
             right->u.int_val = value;
         }
-        InterCode new_code = (InterCode)malloce(sizeof(InterCode_));
+        InterCode new_code = (InterCode)malloc(sizeof(InterCode_));
         {
             new_code->kind = ASSIGN;
             new_code->u.assign.left = place;
@@ -754,7 +1069,7 @@ void translate_Cond(TreeNode* root, Operand label_true, Operand label_false){
             strcpy(relop->u.value, current_rel_name);
         }
         // [IF t1 op t2 GOTO label_true]
-        InterCode new_code = (InterCode)malloce(sizeof(InterCode_));
+        InterCode new_code = (InterCode)malloc(sizeof(InterCode_));
         {
             new_code->kind = IFGOTO;
             new_code->u.ifgoto_op.op1 = t1;
@@ -788,7 +1103,7 @@ void translate_Cond(TreeNode* root, Operand label_true, Operand label_false){
         strcpy(relop->u.value, "!=");
     }
     // [IF t1 != #0 GOTO label_true]
-    InterCode new_code = (InterCode)malloce(sizeof(InterCode_));
+    InterCode new_code = (InterCode)malloc(sizeof(InterCode_));
     {
         new_code->kind = IFGOTO;
         new_code->u.ifgoto_op.op1 = t1;
@@ -807,25 +1122,72 @@ void translate_Cond(TreeNode* root, Operand label_true, Operand label_false){
     return;
 }
 
-Operand translate_Exp_left(TreeNode* root){
+Operand translate_Exp_left(TreeNode* root, Operand place){
     if (root == NULL)
-        return;
+        return NULL;
     int count_node = countChild(root);
 
     //-> Exp LB Exp RB
     if (count_node == 4 && strcmp(childNode(root, 0)->name, "Exp") == 0 && strcmp(childNode(root, 1)->name, "LB") == 0 && strcmp(childNode(root, 2)->name, "Exp") == 0 && strcmp(childNode(root, 3)->name, "RB") == 0){
-        return true;
+        Operand t1 = new_temp(); 
+        Operand var = translate_Exp_left(childNode(root, 0), t1);
+        
+        // [t1 := &var]
+        if (var != NULL){
+            InterCode new_code = (InterCode)malloc(sizeof(InterCode_));
+            {
+                new_code->kind = GET_ADDR;
+                new_code->u.binop.op1 = t1;
+                new_code->u.binop.op2 = var;
+            }
+            insert_intercode_operation(InterCodesList, new_code);
+        }
+        // to calculate Exp2, and place it in t2
+        Operand t2 = new_temp();
+        translate_Exp(childNode(root, 2), t2);
+        // [t3 := t2 * 4]
+        Operand t3 = new_temp();
+        InterCode new_code = (InterCode)malloc(sizeof(InterCode_));
+        {
+            new_code->kind = MUL;
+            new_code->u.binop.result = t3;
+            new_code->u.binop.op1 = t2;
+            new_code->u.binop.op2 = temp_four;
+        }
+        insert_intercode_operation(InterCodesList, new_code);
+        // [place := t1 + t3]
+        new_code = (InterCode)malloc(sizeof(InterCode_));
+        {
+            new_code->kind = ADD;
+            new_code->u.binop.result = place;
+            new_code->u.binop.op1 = t1;
+            new_code->u.binop.op2 = t3;
+        }
+        insert_intercode_operation(InterCodesList, new_code);
+        return NULL;
     }
+    
     //-> Exp DOT ID
     if (count_node == 3 && strcmp(childNode(root, 0)->name, "Exp") == 0 && strcmp(childNode(root, 1)->name, "DOT") == 0 && strcmp(childNode(root, 2)->name, "ID") == 0){
+        Operand t1 = new_temp(); 
+        Operand var = translate_Exp_left(childNode(root, 0), t1);
         
+        // [t1 := &var]
+        if (var != NULL){
+            
+        }
+        // calculate the offset
+        // [place := t1 + offset]
+
+        return NULL;
     }
+    
     //-> ID
     if (count_node == 1 && strcmp(childNode(root, 0)->name, "ID") == 0){
         char *current_var_name = childNode(root, 0)->id_val;
         Operand current_var = (Operand)malloc(sizeof(Operand_));
         {
-            current_var->kind = VARIABLE;
+            current_var->kind = IR_VARIABLE;
             strcpy(current_var->u.value, current_var_name);
         }    
         return current_var;
