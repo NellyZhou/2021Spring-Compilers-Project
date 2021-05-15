@@ -35,6 +35,8 @@ syntax-c: $(YFILE)
 .PHONY: clean test
 test:
 	./parser ../Test/test1.cmm ../Test/out1.ir
+	./parser ../Test/test2.cmm ../Test/out2.ir
+	./parser ../Test/test3.cmm ../Test/out3.ir
 
 clean:
 	rm -f parser lex.yy.c syntax.tab.c syntax.tab.h syntax.output

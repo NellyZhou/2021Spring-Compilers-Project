@@ -104,7 +104,7 @@ id_form		{letter_}({letter_}|{digital})*
 
 >|<|>=|<=|==|!= {
 //	printf("RELOP");
-	yylval.type_node = create_TreeNode("RELOP", __TOKEN_TYPE__, yylineno, -1, yytext);
+	yylval.type_node = create_TreeNode("RELOP", __TOKEN_TYPE__, yylineno, RELOP_VALUE, yytext);
 	return RELOP;
 }
 

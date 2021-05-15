@@ -15,6 +15,7 @@ TreeNode * create_TreeNode(char name[], int node_type, int line,int value_type, 
 			case ID_VALUE: strcpy(ptr->id_val, value); break;
 			case OCT_VALUE: ptr->int_val = (unsigned int)strtol(value, NULL, 8); break;
 			case HEX_VALUE: ptr->int_val = (unsigned int)strtol(value, NULL, 16); break;
+			case RELOP_VALUE: strcpy(ptr->type_val, value); break;
 			defualt: break;
 		}
 	}

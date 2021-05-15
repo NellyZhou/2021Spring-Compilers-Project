@@ -1,0 +1,5 @@
+# error 1
+    remember when op == NULL, we dont need to print assign
+# error 2
+    change the lexical to add RELOP_VALUE
+    make sure to print RELOP

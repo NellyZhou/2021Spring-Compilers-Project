@@ -96,6 +96,7 @@ void show_Op(Operand op){
     case CONSTANT:fprintf(fp,"#%d",op->u.int_val);break;
     case ADDRESS:fprintf(fp,"&%s",op->u.value);break;
     case POINTER:fprintf(fp,"*%s",op->u.value);break;
+    case RELOP:fprintf(fp," %s ",op->u.value);break;
     
     default:fprintf(fp,"%s",op->u.value);break;
     }

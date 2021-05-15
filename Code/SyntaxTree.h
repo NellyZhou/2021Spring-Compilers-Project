@@ -11,6 +11,7 @@
 #define ID_VALUE 3
 #define OCT_VALUE 4
 #define HEX_VALUE 5
+#define RELOP_VALUE 6
 
 #define __TOKEN_TYPE__ 0
 #define __SYMBOL_TYPE__ 1
