@@ -14,7 +14,7 @@ typedef struct InterCodes_* InterCodes;
 typedef struct ArgList_* ArgList;
 struct Operand_ {
     enum {
-        IR_VARIABLE, CONSTANT, ADDRESS, POINTER,
+        IR_VARIABLE, CONSTANT, ADDRESS,
         IR_FUNCTION,
         RELOP,
         TEMP, LABEL /*..*/
@@ -42,6 +42,7 @@ struct InterCode_{
         struct {Operand right, left;} assign;
         struct {Operand result, op1, op2;} binop;
         struct {Operand op1, relop, op2, label;} ifgoto_op;
+        struct {Operand op; unsigned int size;} dec_op;
         /*...*/    
     }u;
     
@@ -61,7 +62,14 @@ extern Operand new_label();
 extern void insert_intercode_operation(InterCodes intercodes_head, InterCode new_intercode);
 
 //
+extern void show_Op(Operand op);
+extern void show_intercode(InterCode code);
 extern void show_IR();
+//
+extern bool isArray(TreeNode* root);
+extern unsigned int calculate_offset(unsigned int offset, FieldList tmp_type, char *field_name);
+extern unsigned int calculate_size(Type t);
+extern void change_dec_size(InterCodes intercodes_head, unsigned size);
 
 //************** High-level Definitions *****************
 extern void IR_Translater(TreeNode* root);
@@ -70,7 +78,7 @@ extern void translate_ExtDef(TreeNode* root);
 extern void translate_ExtDecList(TreeNode* root);   
 
 //************** Declarators ******************************
-extern Operand translate_VarDec(TreeNode* root, bool is_function_param);
+extern Operand translate_VarDec(TreeNode* root, bool is_function_param, Type t);
 extern void translate_FunDec(TreeNode* root);    
 extern void translate_VarList(TreeNode* root);
 extern void translate_ParamDec(TreeNode* root);
@@ -84,8 +92,8 @@ extern void translate_Stmt(TreeNode* root);
 //************** Local Definitions *************************
 extern void translate_DefList(TreeNode* root);
 extern void translate_Def(TreeNode* root);
-extern void translate_DecList(TreeNode* root);
-extern void translate_Dec(TreeNode* root);
+extern void translate_DecList(TreeNode* root, Type t);
+extern void translate_Dec(TreeNode* root, Type t);
 
 //************** Expressions ******************************
 extern void translate_Exp(TreeNode* root, Operand place);

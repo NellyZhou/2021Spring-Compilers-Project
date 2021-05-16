@@ -18,7 +18,6 @@ t6 := CALL fact
 t4 := t5 * t6
 RETURN t4
 LABEL L3 :
-
 FUNCTION main :
 READ t11
 m := t11
