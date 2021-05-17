@@ -1,14 +1,26 @@
-FUNCTION f :
-PARAM k
-PARAM a
-t1 := #3
-RETURN t1
 FUNCTION main :
-t3 := #10
-t4 := #4
-ARG t4
-ARG t3
-t2 := CALL f
-i := t2
-t5 := #0
-RETURN t5
+DEC t1 12000
+worker := &t1
+t4 := worker
+t5 := #1
+t6 := t5 * #12
+t3 := t4 + t6
+t2 := t3 + #0
+t7 := #100
+*t2 := t7
+t01 := worker
+t11 := #2
+t21 := t11 * #12
+t9 := t01 + t21
+t8 := t9 + #4
+t31 := #200
+*t8 := t31
+t61 := worker
+t71 := #3
+t81 := t71 * #12
+t51 := t61 + t81
+t41 := t51 + #8
+t91 := #300
+*t41 := t91
+t02 := #0
+RETURN t02

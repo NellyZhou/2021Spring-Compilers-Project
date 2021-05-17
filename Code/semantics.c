@@ -929,6 +929,9 @@ Type Exp(TreeNode* root){
         Function current_func = HashListFind(FUNCTION, node_id->id_val);
         if (current_func == NULL){
             if (HashListFind(VARIABLE, node_id->id_val) == NULL){
+#ifdef LAB3_AVOID_IO
+                if (strcmp(node_id->id_val, "write") != 0 && strcmp(node_id->id_val, "read") != 0)
+#endif
                 printf("Error type 2 at Line %d: Undefined function \"%s\".\n", node_id->line, node_id->id_val);
             } else {
                 printf("Error type 11 at Line %d: \"%s\" is not a function.\n", node_id->line, node_id->id_val);
@@ -947,6 +950,9 @@ Type Exp(TreeNode* root){
         Function current_func = HashListFind(FUNCTION, node_id->id_val);
         if (current_func == NULL){
             if (HashListFind(VARIABLE, node_id->id_val) == NULL){
+#ifdef LAB3_AVOID_IO
+                if (strcmp(node_id->id_val, "write") != 0 && strcmp(node_id->id_val, "read") != 0)
+#endif
                 printf("Error type 2 at Line %d: Undefined function \"%s\".\n", node_id->line, node_id->id_val);
             } else {
                 printf("Error type 11 at Line %d: \"%s\" is not a function.\n", node_id->line, node_id->id_val);

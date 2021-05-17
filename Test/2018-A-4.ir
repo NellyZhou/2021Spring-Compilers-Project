@@ -1,0 +1,120 @@
+FUNCTION main :
+DEC x 20
+t1 := #0
+i := t1
+t2 := #5
+N := t2
+t3 := #0
+j := t3
+LABEL L1 :
+t4 := i
+t5 := #5
+IF t4 < t5 GOTO L2
+GOTO L3
+LABEL L2 :
+t7 := &x
+t8 := i
+t9 := t8 * #4
+t6 := t7 + t9
+READ t01
+*t6 := t01
+t31 := i
+t41 := #1
+t21 := t31 + t41
+i := t21
+GOTO L1
+LABEL L3 :
+t61 := N
+i := t61
+LABEL L4 :
+t71 := i
+t81 := #0
+IF t71 > t81 GOTO L5
+GOTO L6
+LABEL L5 :
+LABEL L7 :
+t91 := j
+t12 := i
+t22 := #1
+t02 := t12 - t22
+IF t91 < t02 GOTO L8
+GOTO L9
+LABEL L8 :
+t62 := &x
+t72 := j
+t82 := t72 * #4
+t52 := t62 + t82
+t32 := *t52
+t03 := &x
+t23 := j
+t33 := #1
+t13 := t23 + t33
+t43 := t13 * #4
+t92 := t03 + t43
+t42 := *t92
+IF t32 > t42 GOTO L01
+GOTO L11
+LABEL L01 :
+t83 := &x
+t93 := j
+t04 := t93 * #4
+t73 := t83 + t04
+t63 := *t73
+temp := t63
+t24 := &x
+t34 := j
+t44 := t34 * #4
+t14 := t24 + t44
+t74 := &x
+t94 := j
+t05 := #1
+t84 := t94 + t05
+t15 := t84 * #4
+t64 := t74 + t15
+t54 := *t64
+*t14 := t54
+t35 := &x
+t55 := j
+t65 := #1
+t45 := t55 + t65
+t75 := t45 * #4
+t25 := t35 + t75
+t85 := temp
+*t25 := t85
+LABEL L11 :
+t16 := j
+t26 := #1
+t06 := t16 + t26
+j := t06
+GOTO L7
+LABEL L9 :
+t46 := #0
+j := t46
+t76 := i
+t86 := #1
+t66 := t76 - t86
+i := t66
+GOTO L4
+LABEL L6 :
+t07 := #0
+i := t07
+LABEL L21 :
+t17 := i
+t27 := #5
+IF t17 < t27 GOTO L31
+GOTO L41
+LABEL L31 :
+t57 := &x
+t67 := i
+t77 := t67 * #4
+t47 := t57 + t77
+t37 := *t47
+WRITE t37
+t08 := i
+t18 := #1
+t97 := t08 + t18
+i := t97
+GOTO L21
+LABEL L41 :
+t28 := #0
+RETURN t28

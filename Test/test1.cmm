@@ -1,7 +1,12 @@
-int f(int k, int a){
-    return 3;
-}
+struct Op{
+    int x;
+    int y;
+    int z;
+};
 int main(){
-    int i = f(10, 4);
+    struct Op worker[1000];
+    worker[1].x = 100;
+    worker[2].y = 200;
+    worker[3].z = 300;
     return 0;
 }

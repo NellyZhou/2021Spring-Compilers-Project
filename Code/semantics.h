@@ -5,6 +5,8 @@
 
 //#define L2_DEBUG true
 #define L2_DEBUG false
+#define LAB3_AVOID_IO
+
 
 typedef int bool;
 #define true 1

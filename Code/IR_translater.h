@@ -3,10 +3,12 @@
 #include "SyntaxTree.h"
 #include "semantics.h"
 #include <stdlib.h>
+#include <assert.h>
 
 typedef int bool;
 #define true 1
 #define false 0
+
 
 typedef struct Operand_* Operand;
 typedef struct InterCode_* InterCode;

@@ -38,6 +38,11 @@ test:
 	./parser ../Test/test2.cmm ../Test/out2.ir
 	./parser ../Test/test3.cmm ../Test/out3.ir
 	./parser ../Test/test4.cmm ../Test/out4.ir
+	./parser ../Test/2018-A-4.cmm ../Test/2018-A-4.ir
+	./parser ../Test/2018-B-1.cmm ../Test/2018-B-1.ir
+	./parser ../Test/2018-E1-2.cmm ../Test/2018-E1-2.ir
+	./parser ../Test/E1_3.cmm ../Test/E1_3.ir
+
 
 clean:
 	rm -f parser lex.yy.c syntax.tab.c syntax.tab.h syntax.output

@@ -195,10 +195,12 @@ void show_intercode(InterCode code){
         fprintf(fp, "\n");
         break;
     case CALL:
-        if (code->u.assign.left != NULL){
-            show_Op(code->u.assign.left);
-            fprintf(fp, " := ");
+        if (code->u.assign.left == NULL){
+            Operand t1 = new_temp();
+            code->u.assign.left = t1;
         }
+        show_Op(code->u.assign.left);
+        fprintf(fp, " := ");
         fprintf(fp, "CALL ");
         show_Op(code->u.assign.right);
         fprintf(fp, "\n");
@@ -264,7 +266,7 @@ unsigned int calculate_size(Type t){
     if (t->kind == BASIC)
         return 4;
     if (t->kind == ARRAY)
-        return t->u.array.size;
+        return t->u.array.size * calculate_size(t->u.array.elem);
     FieldList ptr = t->u.structure;
     unsigned int ans = 0;
     while (ptr != NULL){
@@ -414,11 +416,13 @@ Operand translate_VarDec(TreeNode* root, bool is_function_param, Type t){
     if (count_node == 4 && strcmp(childNode(root, 0)->name, "VarDec") == 0 && strcmp(childNode(root, 1)->name, "LB") == 0 && strcmp(childNode(root, 2)->name, "INT") == 0 && strcmp(childNode(root, 3)->name, "RB") == 0){
         if (is_function_param){
             printf("Cannot translate: Code contains illegal function parameters.\n");
+            assert(0);
             return NULL;
         } else {
             TreeNode * next_root = childNode(root, 0);
             if (countChild(next_root) != 1){
                printf("Cannot translate: Code contains multi-dimension array.\n");
+               assert(0);
                return NULL; 
             }
             unsigned int size = childNode(root, 2)->int_val;
@@ -781,6 +785,7 @@ void translate_Dec(TreeNode* root, Type t){
         } else {
             /* TODO */
             printf("Cannot translate: Codes contain illegal initialization.\n");
+            assert(0);
             return;
         }
     }
@@ -1128,7 +1133,14 @@ void translate_Args(TreeNode* root, ArgList arg_list){
     //-> Exp COMMA Args
     if (count_node == 3 && strcmp(childNode(root, 0)->name, "Exp") == 0 && strcmp(childNode(root, 1)->name, "COMMA") == 0 && strcmp(childNode(root, 2)->name, "Args") == 0){
         Operand t1 = new_temp();
-        translate_Exp(childNode(root, 0), t1);
+        Type t = Exp(childNode(root, 0));
+        if (t->kind == BASIC){
+            translate_Exp(childNode(root, 0), t1);
+        } else {
+            Operand var = translate_Exp_left(childNode(root, 0), t1);
+            if (var != NULL)
+                t1 = var;
+        }
         // arg_list = t1 + arg_list
         ArgList new_arg = (ArgList)malloc(sizeof(ArgList_));
         {
@@ -1143,7 +1155,14 @@ void translate_Args(TreeNode* root, ArgList arg_list){
     //-> Exp
     if (count_node == 1 && strcmp(childNode(root, 0)->name, "Exp") == 0){
         Operand t1 = new_temp();
-        translate_Exp(childNode(root, 0), t1);
+        Type t = Exp(childNode(root, 0));
+        if (t->kind == BASIC){
+            translate_Exp(childNode(root, 0), t1);
+        } else {
+            Operand var = translate_Exp_left(childNode(root, 0), t1);
+            if (var != NULL)
+                t1 = var;
+        }
         // arg_list = t1 + arg_list
         ArgList new_arg = (ArgList)malloc(sizeof(ArgList_));
         {
@@ -1267,34 +1286,33 @@ Operand translate_Exp_left(TreeNode* root, Operand place){
 
     //-> Exp LB Exp RB
     if (count_node == 4 && strcmp(childNode(root, 0)->name, "Exp") == 0 && strcmp(childNode(root, 1)->name, "LB") == 0 && strcmp(childNode(root, 2)->name, "Exp") == 0 && strcmp(childNode(root, 3)->name, "RB") == 0){
+        // [t1 := &var]
         Operand t1 = new_temp(); 
         Operand var = translate_Exp_left(childNode(root, 0), t1);
         
         if (isArray(childNode(root, 0))){
             printf("Cannot translate: Code contains variables of multi-dimensional array type.\n");
+            assert(0);
             return NULL;
-        }
-        // [t1 := &var]
-        if (var != NULL){
-            InterCode new_code = (InterCode)malloc(sizeof(InterCode_));
-            {
-                new_code->kind = GET_ADDR;
-                new_code->u.binop.op1 = t1;
-                new_code->u.binop.op2 = var;
-            }
-            insert_intercode_operation(InterCodesList, new_code);
         }
         // to calculate Exp2, and place it in t2
         Operand t2 = new_temp();
         translate_Exp(childNode(root, 2), t2);
-        // [t3 := t2 * 4]
+        // to calculate size
+        Type t = Exp(childNode(root, 0));
+        Operand size = (Operand)malloc(sizeof(Operand_));
+        {
+            size->kind = CONSTANT;
+            size->u.int_val = calculate_size(t->u.array.elem);
+        }
+        // [t3 := t2 * size]
         Operand t3 = new_temp();
         InterCode new_code = (InterCode)malloc(sizeof(InterCode_));
         {
             new_code->kind = MUL;
             new_code->u.binop.result = t3;
             new_code->u.binop.op1 = t2;
-            new_code->u.binop.op2 = temp_four;
+            new_code->u.binop.op2 = size;
         }
         insert_intercode_operation(InterCodesList, new_code);
         // [place := t1 + t3]
@@ -1311,22 +1329,10 @@ Operand translate_Exp_left(TreeNode* root, Operand place){
     
     //-> Exp DOT ID
     if (count_node == 3 && strcmp(childNode(root, 0)->name, "Exp") == 0 && strcmp(childNode(root, 1)->name, "DOT") == 0 && strcmp(childNode(root, 2)->name, "ID") == 0){
+        // [t1 := &var]
         Operand t1 = new_temp(); 
         Operand var = translate_Exp_left(childNode(root, 0), t1);
         
-        // [t1 := var]
-        
-        if (var != NULL){
-            InterCode new_code = (InterCode)malloc(sizeof(InterCode_));
-            {
-                new_code->kind = ASSIGN; /* GET_ADDR */
-                new_code->u.assign.left = t1;
-                new_code->u.assign.right = var;
-                //printf("%s\n",var->u.value);
-            }
-            insert_intercode_operation(InterCodesList, new_code);
-        }  
-
         // calculate the offset
         Type temp_type = Exp(childNode(root, 0));
         char * current_field_name = childNode(root, 2)->id_val;
@@ -1336,7 +1342,7 @@ Operand translate_Exp_left(TreeNode* root, Operand place){
             offset->kind = CONSTANT;
             offset->u.int_val = size;
         }
-        // [place := ID + offset]
+        // [place := t1 + offset]
         InterCode new_code = (InterCode)malloc(sizeof(InterCode_));
         {
             new_code->kind = ADD;
@@ -1356,8 +1362,32 @@ Operand translate_Exp_left(TreeNode* root, Operand place){
         {
             current_var->kind = IR_VARIABLE;
             strcpy(current_var->u.value, current_var_name);
-        }    
-        return current_var;
+        }  
+
+        Type t = Exp(root);
+        if (t->kind == BASIC)
+            return current_var;
+        if (t->kind == ARRAY && t->u.array.elem->kind == BASIC){
+            // [place := &var]
+            InterCode new_code = (InterCode)malloc(sizeof(InterCode_));
+            {
+                new_code->kind = GET_ADDR;
+                new_code->u.assign.left = place;
+                new_code->u.assign.right = current_var;
+            }
+            insert_intercode_operation(InterCodesList, new_code);
+            return NULL;
+        } else {
+            // [place := var]
+            InterCode new_code = (InterCode)malloc(sizeof(InterCode_));
+            {
+                new_code->kind = ASSIGN;
+                new_code->u.assign.left = place;
+                new_code->u.assign.right = current_var;
+            }
+            insert_intercode_operation(InterCodesList, new_code);
+            return NULL;
+        }
     }
     return NULL;
 }

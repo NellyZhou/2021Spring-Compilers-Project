@@ -1,0 +1,103 @@
+FUNCTION main :
+DEC t1 120
+worker := &t1
+t2 := #10
+N := t2
+t3 := #0
+final := t3
+t5 := #0
+i := t5
+LABEL L1 :
+t6 := i
+t7 := N
+IF t6 < t7 GOTO L2
+GOTO L3
+LABEL L2 :
+t01 := worker
+t11 := i
+t21 := t11 * #12
+t9 := t01 + t21
+t8 := t9 + #0
+t31 := #100
+*t8 := t31
+t61 := worker
+t71 := i
+t81 := t71 * #12
+t51 := t61 + t81
+t41 := t51 + #4
+t91 := i
+*t41 := t91
+t22 := worker
+t32 := i
+t42 := t32 * #12
+t12 := t22 + t42
+t02 := t12 + #8
+t03 := i
+t13 := i
+t82 := t03 * t13
+t92 := i
+t62 := t82 - t92
+t72 := #2
+t52 := t62 + t72
+*t02 := t52
+t43 := i
+t53 := #1
+t33 := t43 + t53
+i := t33
+GOTO L1
+LABEL L3 :
+t73 := #0
+j := t73
+LABEL L4 :
+t83 := j
+t93 := N
+IF t83 < t93 GOTO L5
+GOTO L6
+LABEL L5 :
+t44 := worker
+t54 := j
+t64 := t54 * #12
+t34 := t44 + t64
+t24 := t34 + #4
+t04 := *t24
+t14 := #3
+IF t04 < t14 GOTO L7
+GOTO L8
+LABEL L7 :
+t84 := #1
+add := t84
+GOTO L9
+LABEL L8 :
+t05 := #2
+add := t05
+LABEL L9 :
+t35 := final
+t16 := worker
+t26 := j
+t36 := t26 * #12
+t06 := t16 + t36
+t95 := t06 + #0
+t75 := *t95
+t46 := #365
+t86 := worker
+t96 := j
+t07 := t96 * #12
+t76 := t86 + t07
+t66 := t76 + #8
+t56 := *t66
+t85 := t46 - t56
+t55 := t75 * t85
+t65 := add
+t45 := t55 * t65
+t25 := t35 + t45
+final := t25
+t37 := j
+t47 := #1
+t27 := t37 + t47
+j := t27
+GOTO L4
+LABEL L6 :
+t57 := final
+WRITE t57
+t67 := #0
+RETURN t67
