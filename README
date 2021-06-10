@@ -1,5 +1,6 @@
+## Compile Principle Lab4
+
 # error 1
-    remember when op == NULL, we dont need to print assign
+    mind Operand x->u.assign.left might be NULL, and we need to remember to check
 # error 2
-    change the lexical to add RELOP_VALUE
-    make sure to print RELOP
+    mind that the $sp

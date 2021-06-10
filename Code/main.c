@@ -2,6 +2,7 @@
 #include "SyntaxTree.h"
 #include "semantics.h"
 #include "IR_translater.h"
+#include "MIPS32.h"
 
 //#define __YY_DEBUG__
 
@@ -10,6 +11,7 @@ int lexical_error = 0;
 int syntax_error = 0;
 int pre_lineno = -1;
 FILE* fp;
+FILE* out_file;
 
 extern FILE* yyin;
 #ifdef __YY_DEBUG__
@@ -27,7 +29,8 @@ int main(int argc, char** argv){
             perror(argv[1]);
             return 1;
 	}
-	fp = fopen(argv[2],"w+");
+	out_file = fopen(argv[2],"w+");
+
 
 	yyrestart(f);
 #ifdef __YY_DEBUG__
@@ -39,8 +42,8 @@ int main(int argc, char** argv){
 		if (L2_DEBUG)
 			show(root, 0);
 		SemanticsProgramAnalysis(root);
-		IR_Translater(root);
+		InterCodes IR_code = IR_Translater(root);
+		MIPS_translater(IR_code);
 	}
-
 	return 0;
 }

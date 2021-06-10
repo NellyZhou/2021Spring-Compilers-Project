@@ -1,26 +1,33 @@
 FUNCTION main :
-DEC t1 12000
-worker := &t1
-t4 := worker
-t5 := #1
-t6 := t5 * #12
-t3 := t4 + t6
-t2 := t3 + #0
-t7 := #100
-*t2 := t7
-t01 := worker
-t11 := #2
-t21 := t11 * #12
-t9 := t01 + t21
-t8 := t9 + #4
-t31 := #200
-*t8 := t31
-t61 := worker
-t71 := #3
-t81 := t71 * #12
-t51 := t61 + t81
-t41 := t51 + #8
-t91 := #300
-*t41 := t91
+t1 := #0
+a := t1
+t2 := #1
+b := t2
+t3 := #0
+i := t3
+READ t5
+n := t5
+LABEL L1 :
+t6 := i
+t7 := n
+IF t6 < t7 GOTO L2
+GOTO L3
+LABEL L2 :
+t9 := a
+t01 := b
+t8 := t9 + t01
+c := t8
+t11 := b
+WRITE t11
+t31 := b
+a := t31
+t51 := c
+b := t51
+t81 := i
+t91 := #1
+t71 := t81 + t91
+i := t71
+GOTO L1
+LABEL L3 :
 t02 := #0
 RETURN t02

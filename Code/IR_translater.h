@@ -74,7 +74,7 @@ extern unsigned int calculate_size(Type t);
 extern void change_dec_size(InterCodes intercodes_head, unsigned size);
 
 //************** High-level Definitions *****************
-extern void IR_Translater(TreeNode* root);
+extern InterCodes IR_Translater(TreeNode* root);
 extern void translate_ExtDefList(TreeNode* root);
 extern void translate_ExtDef(TreeNode* root);
 extern void translate_ExtDecList(TreeNode* root);   

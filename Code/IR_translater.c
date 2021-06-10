@@ -156,9 +156,9 @@ void show_intercode(InterCode code){
         fprintf(fp, "\n");
         break;
     case ASSIGN_ADDR:
-        fprintf(fp, "*");
         if (code->u.assign.left == NULL)
             break;
+        fprintf(fp, "*");
         show_Op(code->u.assign.left);
         fprintf(fp, " := ");
         show_Op(code->u.assign.right);
@@ -296,10 +296,10 @@ void change_dec_size(InterCodes intercodes_head, unsigned size){
 /*
     COMPLETE
 */
-void IR_Translater(TreeNode* root){
+InterCodes IR_Translater(TreeNode* root){
     initial();
     if (root == NULL)
-        return;
+        return NULL;
 #ifdef DEBUG_LAB3
     printf("translate start up\n");
 #endif
@@ -310,8 +310,8 @@ void IR_Translater(TreeNode* root){
 #ifdef DEBUG_LAB3
     printf("translate successfully---------\n");
 #endif
-    show_IR();
-    return;
+    //show_IR();
+    return InterCodesList;
 }
 
 void translate_ExtDefList(TreeNode* root){
