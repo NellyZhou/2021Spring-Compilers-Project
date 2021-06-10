@@ -196,7 +196,7 @@ void MIPS_translater(InterCodes InterCodesList){
                 break;
             case ARG:
             case CALL:
-                translate_CALL(ptr);
+                ptr = translate_CALL(ptr);
                 break;
             case READ:
                 fprintf(out_file, "addi $sp, $sp, -4\n");
@@ -314,7 +314,7 @@ void translate_FUNCTION_ENTRY(InterCodes ptr){
     return;
 }
 
-void translate_CALL(InterCodes ptr){
+InterCodes translate_CALL(InterCodes ptr){
     int offset = 0;
     while (ptr != NULL && ptr->code != NULL && ptr->code->kind == ARG){
         offset = offset + 4;
@@ -327,10 +327,10 @@ void translate_CALL(InterCodes ptr){
     InterCode tmp_code = ptr->code;
     fprintf(out_file,"jal %s\n", tmp_code->u.assign.right->u.value);
     fprintf(out_file, "addi $sp, $sp, %d\n", offset);
-    int index = get_free_reg(tmp_code->u.assign.left);
+    int index = assign_op2reg(tmp_code->u.assign.left, MIPS_VAR);
     fprintf(out_file,"move %s, $v0\n", regs[index].name);
     assign_reg2memeory(index);
-    return;
+    return ptr;
 }
 
 void translate_RETURN(InterCodes ptr){
@@ -420,7 +420,7 @@ Var find_var(Operand op){
 void assign_stack(Operand op, int offset){
     if (op->kind == CONSTANT)
         return;
-    if (offset < 0 && find_var(op) != NULL)
+    if (find_var(op) != NULL)
         return;
     Var tmp = (Var)malloc(sizeof(Var_));
     strcpy(tmp->name, op->u.value);

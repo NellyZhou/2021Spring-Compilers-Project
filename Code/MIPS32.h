@@ -34,7 +34,7 @@ extern void initialize_regs();
 //============= TRANSLATE INTERCODES ====================
 extern void MIPS_translater(InterCodes InterCodesList);
 extern void translate_FUNCTION_ENTRY(InterCodes ptr);
-extern void translate_CALL(InterCodes ptr);
+extern InterCodes translate_CALL(InterCodes ptr);
 extern void translate_RETURN(InterCodes ptr);
 
 //============= OPTIONAL FUNCTIONS ======================

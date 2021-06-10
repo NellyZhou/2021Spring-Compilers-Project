@@ -36,6 +36,7 @@ syntax-c: $(YFILE)
 test:
 	./parser ../Test/test1.cmm ../Test/out1.s
 	./parser ../Test/test2.cmm ../Test/out2.s
+	./parser ../Test/test3.cmm ../Test/out3.s
 
 
 clean:

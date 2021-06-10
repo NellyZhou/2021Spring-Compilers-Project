@@ -1,15 +1,10 @@
 int fact(int n) 
 {
-    if (n == 1){
+    write(n);
+    if (n == 1)
         return n;
-    }
-    else{
-        int t;
-        write(n);
-        t = fact(n - 1);
-        write(t);
-        return (n * t); 
-    }
+    else 
+        return (n * fact(n - 1)); 
 }
 
 int main()

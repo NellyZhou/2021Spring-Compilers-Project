@@ -3,4 +3,6 @@
 # error 1
     mind Operand x->u.assign.left might be NULL, and we need to remember to check
 # error 2
-    mind that the $sp
+    mind that $sp has '$'
+# error 3
+    when we assign tmp variable to the register, we need to use function 'assign_op2reg' to build up connect. There is an error occuring when fail to reconnect the regsiter to the temporary variable. 
