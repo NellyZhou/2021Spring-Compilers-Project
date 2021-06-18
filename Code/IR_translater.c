@@ -1,6 +1,7 @@
 #include "IR_translater.h"
 
 //#define DEBUG_LAB3
+//#define NEED_IR_LAB4
 
 InterCodes InterCodesList;
 static Operand temp_zero, temp_one, temp_four;
@@ -310,7 +311,9 @@ InterCodes IR_Translater(TreeNode* root){
 #ifdef DEBUG_LAB3
     printf("translate successfully---------\n");
 #endif
-    //show_IR();
+#ifdef NEED_IR_LAB4    
+    show_IR();
+#endif
     return InterCodesList;
 }
 

@@ -1,0 +1,15 @@
+FUNCTION fact :
+PARAM n
+t1 := n
+RETURN t1
+FUNCTION main :
+READ t3
+x := t3
+t6 := x
+ARG t6
+t5 := CALL fact
+y := t5
+t7 := y
+WRITE t7
+t8 := #0
+RETURN t8

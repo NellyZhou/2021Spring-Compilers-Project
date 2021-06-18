@@ -106,6 +106,9 @@ void MIPS_translater(InterCodes InterCodesList){
                 translate_FUNCTION_ENTRY(ptr);
                 break;
             case ASSIGN:
+                #ifdef DEBUG_lab3
+                printf("assign\n");
+                #endif
                 if (tmp_code->u.assign.left == NULL)
                     break;
                 left = assign_op2reg(tmp_code->u.assign.left, MIPS_VAR);
@@ -118,6 +121,9 @@ void MIPS_translater(InterCodes InterCodesList){
             case SUB:
             case MUL:
             case DIV:
+                #ifdef DEBUG_lab3
+                printf("+-*/\n");
+                #endif
                 dest = assign_op2reg(tmp_code->u.binop.result, MIPS_VAR);
                 op1 = assign_op2reg(tmp_code->u.binop.op1, MIPS_VAR);
                 op2 = assign_op2reg(tmp_code->u.binop.op2, MIPS_VAR);
@@ -141,6 +147,9 @@ void MIPS_translater(InterCodes InterCodesList){
                 free_regs();
                 break;
             case GET_ADDR:
+                #ifdef DEBUG_lab3
+                printf("get addr\n");
+                #endif
                 if (tmp_code->u.assign.left == NULL)
                     break;
                 left = assign_op2reg(tmp_code->u.assign.left, MIPS_VAR);
@@ -150,6 +159,9 @@ void MIPS_translater(InterCodes InterCodesList){
                 free_regs();
                 break;
             case GET_VALUE:
+                #ifdef DEBUG_lab3
+                printf("get value\n");
+                #endif
                 if (tmp_code->u.assign.left == NULL)
                     break;
                 left = assign_op2reg(tmp_code->u.assign.left, MIPS_VAR);
@@ -159,10 +171,13 @@ void MIPS_translater(InterCodes InterCodesList){
                 free_regs();
                 break;
             case ASSIGN_ADDR:
+                #ifdef DEBUG_lab3
+                printf("assign addr\n");
+                #endif
                 if (tmp_code->u.assign.left == NULL)
                     break;
                 left = assign_op2reg(tmp_code->u.assign.left, MIPS_VAR);
-                right = assign_op2reg(tmp_code->u.assign.right, MIPS_ADDRESS);
+                right = assign_op2reg(tmp_code->u.assign.right, MIPS_VAR);
                 fprintf(out_file, "sw %s, 0(%s)\n", regs[right].name, regs[left].name);
                 free_regs();
                 break;
@@ -171,6 +186,9 @@ void MIPS_translater(InterCodes InterCodesList){
                 fprintf(out_file, "j %s\n", label_op->u.value);
                 break;
             case IFGOTO: 
+                #ifdef DEBUG_lab3
+                printf("ifgoto\n");
+                #endif
                 op1 = assign_op2reg(tmp_code->u.ifgoto_op.op1, MIPS_VAR);
                 op2 = assign_op2reg(tmp_code->u.ifgoto_op.op2, MIPS_VAR);
                 relop_op = tmp_code->u.ifgoto_op.relop;
@@ -196,9 +214,15 @@ void MIPS_translater(InterCodes InterCodesList){
                 break;
             case ARG:
             case CALL:
+                #ifdef DEBUG_lab3
+                printf("call\n");
+                #endif
                 ptr = translate_CALL(ptr);
                 break;
             case READ:
+                #ifdef DEBUG_lab3
+                printf("read\n");
+                #endif
                 fprintf(out_file, "addi $sp, $sp, -4\n");
                 fprintf(out_file, "sw $ra, 0($sp)\n");
                 fprintf(out_file, "jal read\n");
@@ -242,7 +266,7 @@ void translate_FUNCTION_ENTRY(InterCodes ptr){
     int offset = 0;
     while (ptr != NULL && ptr->code != NULL && ptr->code->kind == PARAM){
         InterCode tmp_code = ptr->code;
-        assign_stack(tmp_code->u.sinop.op, offset * 4 + 8);
+        assign_stack(tmp_code->u.sinop.op, offset + 8);
         offset = offset + 4;
         ptr = ptr->next;
     }
@@ -327,6 +351,8 @@ InterCodes translate_CALL(InterCodes ptr){
     InterCode tmp_code = ptr->code;
     fprintf(out_file,"jal %s\n", tmp_code->u.assign.right->u.value);
     fprintf(out_file, "addi $sp, $sp, %d\n", offset);
+    if (tmp_code->u.assign.left == NULL)
+        return ptr;
     int index = assign_op2reg(tmp_code->u.assign.left, MIPS_VAR);
     fprintf(out_file,"move %s, $v0\n", regs[index].name);
     assign_reg2memeory(index);
@@ -418,6 +444,8 @@ Var find_var(Operand op){
 }
 
 void assign_stack(Operand op, int offset){
+    if (op == NULL)
+        return;
     if (op->kind == CONSTANT)
         return;
     if (find_var(op) != NULL)
